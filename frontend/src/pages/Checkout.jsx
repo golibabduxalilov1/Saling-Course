@@ -1,11 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, CircleAlert, ShieldCheck, Tag } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CircleAlert, Loader2, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { api } from '../api/client';
 import { formatMoney } from '../utils/format';
 import { getTrackingPayload } from '../utils/utm';
 import { track } from '../utils/track';
+
+function Fieldset({ index, title, hint, children }) {
+  return (
+    <fieldset className="border-t border-ink pt-6">
+      <legend className="sr-only">{title}</legend>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+        <div className="md:col-span-4">
+          <span className="t-index block mb-2">{index}</span>
+          <h2 className="t-heading text-[17px] text-ink">{title}</h2>
+          {hint && <p className="mt-2 text-sm text-ink-3 leading-relaxed">{hint}</p>}
+        </div>
+        <div className="md:col-span-8 flex flex-col gap-5">{children}</div>
+      </div>
+    </fieldset>
+  );
+}
 
 export default function Checkout() {
   const location = useLocation();
@@ -22,8 +38,6 @@ export default function Checkout() {
     phone: '',
     telegramUsername: '',
     email: '',
-    region: '',
-    address: '',
     comment: '',
   });
   const [promoInput, setPromoInput] = useState('');
@@ -110,22 +124,24 @@ export default function Checkout() {
   if (items.length === 0) return null;
 
   return (
-    <div className="container-page py-8">
-      <h1 className="text-h2 text-2xl text-ink mb-6">Buyurtmani rasmiylashtirish</h1>
+    <div className="shell py-14 md:py-20">
+      <span className="t-kicker t-kicker-accent">Rasmiylashtirish</span>
+      <h1 className="t-display text-[40px] md:text-[56px] text-ink mt-6">Buyurtma berish</h1>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-5 card p-5">
-          <div>
-            <h3 className="font-bold text-ink mb-3">Shaxsiy ma'lumotlar</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        {/* ── Form ───────────────────────────────────────────────────────── */}
+        <form onSubmit={handleSubmit} className="lg:col-span-7 flex flex-col gap-14" noValidate>
+          <Fieldset index="01" title="Shaxsiy maʼlumotlar" hint="Buyurtmani kim uchun rasmiylashtiryapmiz.">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="form-label" htmlFor="checkout-name">
-                  Ism<span className="required">*</span>
+                <label className="field-label" htmlFor="co-name">
+                  Ism<span className="req">*</span>
                 </label>
                 <input
-                  id="checkout-name"
-                  className="input-field"
+                  id="co-name"
                   name="customerName"
+                  className="field"
+                  autoComplete="given-name"
                   placeholder="Ismingiz"
                   value={form.customerName}
                   onChange={handleChange}
@@ -133,194 +149,201 @@ export default function Checkout() {
                 />
               </div>
               <div>
-                <label className="form-label" htmlFor="checkout-lastname">
-                  Familiya
+                <label className="field-label" htmlFor="co-lastname">
+                  Familiya <span className="optional">(ixtiyoriy)</span>
                 </label>
                 <input
-                  id="checkout-lastname"
-                  className="input-field"
+                  id="co-lastname"
                   name="customerLastName"
+                  className="field"
+                  autoComplete="family-name"
                   placeholder="Familiyangiz"
                   value={form.customerLastName}
                   onChange={handleChange}
                 />
               </div>
             </div>
-          </div>
+          </Fieldset>
 
-          <div>
-            <h3 className="font-bold text-ink mb-3">Aloqa ma'lumotlari</h3>
-            <div className="flex flex-col gap-4">
+          <Fieldset index="02" title="Aloqa maʼlumotlari" hint="Operator shu maʼlumotlar orqali bogʼlanadi.">
+            <div>
+              <label className="field-label" htmlFor="co-phone">
+                Telefon raqami<span className="req">*</span>
+              </label>
+              <input
+                id="co-phone"
+                name="phone"
+                type="tel"
+                className="field figures"
+                autoComplete="tel"
+                placeholder="+998 90 123 45 67"
+                value={form.phone}
+                onChange={handleChange}
+                onBlur={handlePhoneBlur}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="form-label" htmlFor="checkout-phone">
-                  Telefon raqami<span className="required">*</span>
+                <label className="field-label" htmlFor="co-telegram">
+                  Telegram <span className="optional">(ixtiyoriy)</span>
                 </label>
                 <input
-                  id="checkout-phone"
-                  className="input-field"
-                  name="phone"
-                  placeholder="+998 90 123 45 67"
-                  value={form.phone}
+                  id="co-telegram"
+                  name="telegramUsername"
+                  className="field"
+                  placeholder="@username"
+                  value={form.telegramUsername}
                   onChange={handleChange}
-                  onBlur={handlePhoneBlur}
-                  required
                 />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="form-label" htmlFor="checkout-telegram">
-                    Telegram username
-                  </label>
-                  <input
-                    id="checkout-telegram"
-                    className="input-field"
-                    name="telegramUsername"
-                    placeholder="@username"
-                    value={form.telegramUsername}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <label className="form-label" htmlFor="checkout-email">
-                    Elektron pochta
-                  </label>
-                  <input
-                    id="checkout-email"
-                    className="input-field"
-                    name="email"
-                    placeholder="email@misol.uz"
-                    value={form.email}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-ink mb-3">Yetkazib berish</h3>
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="form-label" htmlFor="checkout-region">
-                    Viloyat / shahar
-                  </label>
-                  <input
-                    id="checkout-region"
-                    className="input-field"
-                    name="region"
-                    placeholder="Masalan, Toshkent"
-                    value={form.region}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <label className="form-label" htmlFor="checkout-address">
-                    Manzil <span className="text-ink-muted font-normal">(jismoniy mahsulot uchun)</span>
-                  </label>
-                  <input
-                    id="checkout-address"
-                    className="input-field"
-                    name="address"
-                    placeholder="Ko'cha, uy"
-                    value={form.address}
-                    onChange={handleChange}
-                  />
-                </div>
               </div>
               <div>
-                <label className="form-label" htmlFor="checkout-comment">
-                  Izoh
+                <label className="field-label" htmlFor="co-email">
+                  Email <span className="optional">(ixtiyoriy)</span>
                 </label>
-                <textarea
-                  id="checkout-comment"
-                  className="input-field"
-                  name="comment"
-                  placeholder="Qo'shimcha izoh"
-                  rows={3}
-                  value={form.comment}
+                <input
+                  id="co-email"
+                  name="email"
+                  type="email"
+                  className="field"
+                  autoComplete="email"
+                  placeholder="email@misol.uz"
+                  value={form.email}
                   onChange={handleChange}
                 />
               </div>
             </div>
-          </div>
+          </Fieldset>
 
-          {submitError && (
-            <p className="form-error">
-              <CircleAlert size={15} aria-hidden="true" />
-              {submitError}
-            </p>
-          )}
-
-          <button type="submit" className="btn-accent w-full" disabled={submitting}>
-            {submitting ? 'Yuborilmoqda...' : 'Buyurtma berish'}
-          </button>
-          <p className="text-xs text-ink-muted text-center flex items-center justify-center gap-1.5">
-            <ShieldCheck size={15} className="text-emerald-500 shrink-0" aria-hidden="true" />
-            Buyurtma bergandan so'ng sotuvchi siz bilan bog'lanadi va to'lovni qabul qiladi.
-          </p>
-        </form>
-
-        <div className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-          <div className="card p-5 flex flex-col gap-3 sticky top-20">
-            <h3 className="font-bold text-ink">Buyurtma tarkibi</h3>
-            {items.map((item) => (
-              <div key={item.key || item.productId} className="flex justify-between text-sm gap-2">
-                <div>
-                  <p className="font-medium text-ink line-clamp-1">{item.productName}</p>
-                  {item.tariffName && <p className="text-ink-muted text-xs">{item.tariffName}</p>}
-                </div>
-                <span className="shrink-0 text-ink tabular-nums">{formatMoney(item.unitPrice * item.quantity)}</span>
-              </div>
-            ))}
-
-            <div className="border-t border-border-soft pt-3 flex gap-2">
-              <input
-                className="input-field text-sm"
-                placeholder="Promo-kod"
-                aria-label="Promo-kod"
-                value={promoInput}
-                onChange={(e) => setPromoInput(e.target.value)}
+          <Fieldset index="03" title="Qoʼshimcha izoh" hint="Ixtiyoriy — savol yoki alohida talabingiz boʼlsa.">
+            <div>
+              <label className="field-label" htmlFor="co-comment">
+                Izoh
+              </label>
+              <textarea
+                id="co-comment"
+                name="comment"
+                className="field"
+                rows={4}
+                placeholder="Qoʼshimcha maʼlumot"
+                value={form.comment}
+                onChange={handleChange}
               />
-              <button type="button" className="btn-secondary text-sm shrink-0" onClick={applyPromo}>
-                Qo'llash
-              </button>
             </div>
-            {promoError && <p className="form-error">{promoError}</p>}
-            {promo && (
-              <p className="text-sm text-success flex items-center gap-1.5">
-                <Tag size={14} aria-hidden="true" />
-                Promo-kod qo'llandi: -{formatMoney(promo.discountAmount)}
+          </Fieldset>
+
+          <div className="border-t border-ink pt-8">
+            {submitError && (
+              <p className="field-error mb-5" role="alert">
+                <CircleAlert size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
+                {submitError}
               </p>
             )}
 
-            <div className="border-t border-border-soft pt-3 flex flex-col gap-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-ink-muted">Mahsulotlar</span>
-                <span className="text-ink tabular-nums">{formatMoney(subtotal)}</span>
+            <button type="submit" className="btn btn-lg btn-accent w-full sm:w-auto" disabled={submitting}>
+              {submitting ? (
+                <>
+                  <Loader2 size={17} className="motion-spin" aria-hidden="true" />
+                  Yuborilmoqda
+                </>
+              ) : (
+                <>
+                  Buyurtma berish
+                  <ArrowRight size={17} aria-hidden="true" />
+                </>
+              )}
+            </button>
+
+            <p className="mt-5 flex items-start gap-2 text-sm leading-relaxed text-ink-3 max-w-md">
+              <ShieldCheck size={15} className="mt-0.5 shrink-0 text-positive" aria-hidden="true" />
+              Buyurtma bergandan soʼng sotuvchi siz bilan bogʼlanadi va toʼlovni qabul qiladi.
+            </p>
+          </div>
+        </form>
+
+        {/* ── Summary ────────────────────────────────────────────────────── */}
+        <aside className="lg:col-span-5 lg:sticky lg:top-28">
+          <div className="panel p-6 md:p-8">
+            <h2 className="t-kicker">Buyurtma tarkibi</h2>
+
+            <ul className="mt-6 pt-6 border-t border-line flex flex-col gap-4">
+              {items.map((item) => (
+                <li key={item.key || item.productId} className="flex justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm text-ink line-clamp-2">{item.productName}</p>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+                      {item.tariffName ? `${item.tariffName} · ` : ''}
+                      <span className="figures">{item.quantity} dona</span>
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-medium text-ink figures">
+                    {formatMoney(item.unitPrice * item.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 pt-6 border-t border-line">
+              <label className="field-label" htmlFor="co-promo">
+                Promo-kod
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="co-promo"
+                  className={`field ${promoError ? 'field-invalid' : ''}`}
+                  placeholder="Kodni kiriting"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value)}
+                  aria-invalid={!!promoError}
+                  aria-describedby={promoError ? 'co-promo-error' : undefined}
+                />
+                <button type="button" className="btn btn-outline shrink-0" onClick={applyPromo}>
+                  Qoʼllash
+                </button>
+              </div>
+              {promoError && (
+                <p className="field-error" id="co-promo-error" role="alert">
+                  <CircleAlert size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  {promoError}
+                </p>
+              )}
+              {promo && (
+                <p className="mt-2 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-positive">
+                  <Check size={13} aria-hidden="true" />
+                  <span className="figures">−{formatMoney(promo.discountAmount)}</span>
+                </p>
+              )}
+            </div>
+
+            <dl className="mt-6 pt-6 border-t border-line flex flex-col gap-3 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-3">Mahsulotlar</dt>
+                <dd className="text-ink figures">{formatMoney(subtotal)}</dd>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-success">
-                  <span>Chegirma</span>
-                  <span className="tabular-nums">-{formatMoney(discountAmount)}</span>
+                <div className="flex justify-between gap-4 text-positive">
+                  <dt>Chegirma</dt>
+                  <dd className="figures">−{formatMoney(discountAmount)}</dd>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-base text-ink mt-1 pt-1.5 border-t border-border-soft">
-                <span>Jami</span>
-                <span className="tabular-nums">{formatMoney(total)}</span>
-              </div>
+            </dl>
+
+            <div className="mt-6 pt-6 border-t border-ink flex items-baseline justify-between gap-4">
+              <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-2">Jami</span>
+              <span className="t-display text-[28px] text-ink figures">{formatMoney(total)}</span>
             </div>
           </div>
+
           {!buyNowItem && (
             <Link
               to="/savat"
-              className="text-sm text-center text-ink-muted hover:text-gold-600 transition-colors inline-flex items-center justify-center gap-1.5"
+              className="link mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3 hover:text-accent"
             >
-              <ArrowLeft size={14} aria-hidden="true" />
+              <ArrowLeft size={13} aria-hidden="true" />
               Savatga qaytish
             </Link>
           )}
-        </div>
+        </aside>
       </div>
     </div>
   );

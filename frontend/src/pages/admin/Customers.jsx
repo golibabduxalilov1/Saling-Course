@@ -4,38 +4,44 @@ import { adminApi } from '../../api/client';
 import { formatMoney, formatDate } from '../../utils/format';
 import EmptyState from '../../components/EmptyState';
 import { TableSkeleton } from '../../components/Skeleton';
+import PageHeader from '../../components/admin/PageHeader';
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    adminApi.get('/customers').then((res) => setCustomers(res.data)).finally(() => setLoading(false));
+    adminApi
+      .get('/customers')
+      .then((res) => setCustomers(res.data))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-2">
-        <Users size={22} className="text-navy-900" aria-hidden="true" />
-        <h1 className="text-2xl font-bold text-ink">Mijozlar</h1>
-      </div>
+    <div>
+      <PageHeader
+        kicker="Mijozlar"
+        title="Mijozlar bazasi"
+        description="Buyurtma bergan barcha mijozlar va ularning xarid tarixi."
+      />
+
       {loading ? (
-        <div className="table-wrap">
+        <div className="tbl-frame">
           <TableSkeleton rows={6} cols={7} />
         </div>
       ) : customers.length === 0 ? (
-        <div className="card">
-          <EmptyState icon={Users} title="Mijoz yo'q" description="Hozircha hech qanday mijoz mavjud emas." />
+        <div className="panel">
+          <EmptyState icon={Users} title="Mijoz yoʼq" description="Hozircha hech qanday mijoz mavjud emas." />
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="data-table">
+        <div className="tbl-frame">
+          <table className="tbl">
             <thead>
               <tr>
                 <th>Ism</th>
                 <th>Telefon</th>
                 <th>Buyurtmalar</th>
-                <th>To'langan</th>
+                <th>Toʼlangan</th>
                 <th>Jami xarid</th>
                 <th>Manba</th>
                 <th>Oxirgi buyurtma</th>
@@ -45,12 +51,24 @@ export default function Customers() {
               {customers.map((c) => (
                 <tr key={c.phone}>
                   <td className="font-medium text-ink">{c.name}</td>
-                  <td>{c.phone}</td>
-                  <td>{c.ordersCount}</td>
-                  <td>{c.paidOrdersCount}</td>
-                  <td>{formatMoney(c.totalSpent)}</td>
-                  <td className="text-ink-muted">{c.lastSource || '—'}</td>
-                  <td className="text-ink-muted">{formatDate(c.lastOrderAt)}</td>
+                  <td>
+                    <a href={`tel:${c.phone}`} className="link font-mono text-xs text-ink-2 figures">
+                      {c.phone}
+                    </a>
+                  </td>
+                  <td className="figures">{c.ordersCount}</td>
+                  <td className="figures">{c.paidOrdersCount}</td>
+                  <td className="figures text-ink">{formatMoney(c.totalSpent)}</td>
+                  <td>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                      {c.lastSource || '—'}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="font-mono text-[11px] text-ink-3 figures whitespace-nowrap">
+                      {formatDate(c.lastOrderAt)}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

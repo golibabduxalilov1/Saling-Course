@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Phone, Send, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { adminApi } from '../../api/client';
 import { formatDate } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../../components/EmptyState';
 import { TableSkeleton } from '../../components/Skeleton';
-
-const LEAD_STATUS_LABELS = {
-  NEW: 'Yangi',
-  CONTACTED: "Bog'lanildi",
-  CONVERTED: 'Xaridorga aylandi',
-  REJECTED: 'Rad etildi',
-};
+import { LEAD_STATUS_META, LeadStatusBadge } from '../../components/admin/StatusBadge';
+import PageHeader from '../../components/admin/PageHeader';
 
 export default function Leads() {
   const [leads, setLeads] = useState([]);
@@ -19,7 +14,10 @@ export default function Leads() {
   const toast = useToast();
 
   useEffect(() => {
-    adminApi.get('/leads').then((res) => setLeads(res.data)).finally(() => setLoading(false));
+    adminApi
+      .get('/leads')
+      .then((res) => setLeads(res.data))
+      .finally(() => setLoading(false));
   }, []);
 
   const updateStatus = async (id, status) => {
@@ -33,22 +31,28 @@ export default function Leads() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-2">
-        <UserPlus size={22} className="text-navy-900" aria-hidden="true" />
-        <h1 className="text-2xl font-bold text-ink">Bepul material so'raganlar</h1>
-      </div>
+    <div>
+      <PageHeader
+        kicker="Mijozlar"
+        title="Bepul soʼrovlar"
+        description="Bepul material so'ragan foydalanuvchilar va ularning holati."
+      />
+
       {loading ? (
-        <div className="table-wrap">
+        <div className="tbl-frame">
           <TableSkeleton rows={6} cols={7} />
         </div>
       ) : leads.length === 0 ? (
-        <div className="card">
-          <EmptyState icon={UserPlus} title="So'rov yo'q" description="Hozircha hech qanday bepul material so'rovi yo'q." />
+        <div className="panel">
+          <EmptyState
+            icon={UserPlus}
+            title="Soʼrov yoʼq"
+            description="Hozircha hech qanday bepul material soʼrovi yoʼq."
+          />
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="data-table">
+        <div className="tbl-frame">
+          <table className="tbl">
             <thead>
               <tr>
                 <th>Ism</th>
@@ -65,36 +69,43 @@ export default function Leads() {
                 <tr key={l.id}>
                   <td className="font-medium text-ink">{l.name}</td>
                   <td>
-                    <span className="flex items-center gap-1.5">
-                      <Phone size={14} aria-hidden="true" className="text-ink-muted shrink-0" />
+                    <a href={`tel:${l.phone}`} className="link font-mono text-xs text-ink-2 figures">
                       {l.phone}
+                    </a>
+                  </td>
+                  <td>
+                    <span className="font-mono text-xs text-ink-2">{l.telegramUsername || '—'}</span>
+                  </td>
+                  <td>{l.product?.name || '—'}</td>
+                  <td>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                      {l.utmSource || l.source || '—'}
                     </span>
                   </td>
                   <td>
-                    {l.telegramUsername ? (
-                      <span className="flex items-center gap-1.5">
-                        <Send size={14} aria-hidden="true" className="text-ink-muted shrink-0" />
-                        {l.telegramUsername}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
+                    <span className="font-mono text-[11px] text-ink-3 figures whitespace-nowrap">
+                      {formatDate(l.createdAt)}
+                    </span>
                   </td>
-                  <td>{l.product?.name || '—'}</td>
-                  <td className="text-ink-muted">{l.utmSource || l.source || '—'}</td>
-                  <td className="text-ink-muted">{formatDate(l.createdAt)}</td>
                   <td>
-                    <select
-                      className="input-field text-sm py-1"
-                      value={l.status || 'NEW'}
-                      onChange={(e) => updateStatus(l.id, e.target.value)}
-                    >
-                      {Object.entries(LEAD_STATUS_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-3">
+                      <LeadStatusBadge status={l.status || 'NEW'} />
+                      <label className="sr-only" htmlFor={`lead-status-${l.id}`}>
+                        {l.name} holati
+                      </label>
+                      <select
+                        id={`lead-status-${l.id}`}
+                        className="field pick w-44 min-h-[36px] py-1.5 text-sm"
+                        value={l.status || 'NEW'}
+                        onChange={(e) => updateStatus(l.id, e.target.value)}
+                      >
+                        {Object.entries(LEAD_STATUS_META).map(([value, meta]) => (
+                          <option key={value} value={value}>
+                            {meta.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </td>
                 </tr>
               ))}

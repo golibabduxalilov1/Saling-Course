@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { CircleCheck, MessageSquare, Star, Trash2 } from 'lucide-react';
+import { Check, MessageSquare, Star, Trash2 } from 'lucide-react';
 import { adminApi } from '../../api/client';
 import { formatDate } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../../components/EmptyState';
+import { Skeleton } from '../../components/Skeleton';
 import ConfirmModal from '../../components/admin/ConfirmModal';
+import PageHeader from '../../components/admin/PageHeader';
 
 export default function Reviews() {
   const [reviews, setReviews] = useState([]);
@@ -50,68 +52,93 @@ export default function Reviews() {
     }
   };
 
+  const pending = reviews.filter((r) => !r.isApproved).length;
+
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-2">
-        <MessageSquare size={22} className="text-navy-900" aria-hidden="true" />
-        <h1 className="text-2xl font-bold text-ink">Sharhlar</h1>
-      </div>
+    <div>
+      <PageHeader
+        kicker="Katalog"
+        title="Sharhlar"
+        description="Mijoz sharhlarini tasdiqlang — faqat tasdiqlanganlari saytda ko'rinadi."
+        actions={pending > 0 && <span className="tag tag-caution figures">{pending} ta kutilmoqda</span>}
+      />
+
       {loading ? (
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card p-4 h-24 animate-pulse" />
+            <Skeleton key={i} className="h-28 w-full rounded-lg" />
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <div className="card">
-          <EmptyState icon={MessageSquare} title="Sharh yo'q" description="Hozircha hech qanday sharh qoldirilmagan." />
+        <div className="panel">
+          <EmptyState
+            icon={MessageSquare}
+            title="Sharh yoʼq"
+            description="Hozircha hech qanday sharh qoldirilmagan."
+          />
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-3">
           {reviews.map((r) => (
-            <div key={r.id} className="card p-4 flex items-start justify-between gap-4">
-              <div>
-                <div className="font-semibold text-sm text-ink flex items-center gap-1.5">
-                  {r.customerName}
-                  <span className="flex items-center text-gold-500 ml-1">
-                    {Array.from({ length: r.rating }).map((_, i) => (
-                      <Star key={i} size={13} fill="currentColor" aria-hidden="true" />
-                    ))}
-                  </span>
+            <li key={r.id} className="panel p-5">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm font-medium text-ink">{r.customerName}</span>
+                    <span className="flex items-center gap-0.5" aria-label={`Reyting: ${r.rating} / 5`}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={12}
+                          strokeWidth={1.5}
+                          className={i < r.rating ? 'fill-ink text-ink' : 'fill-none text-line-2'}
+                          aria-hidden="true"
+                        />
+                      ))}
+                    </span>
+                    <span className={`tag ${r.isApproved ? 'tag-positive' : 'tag-caution'}`}>
+                      {r.isApproved ? 'Tasdiqlangan' : 'Kutilmoqda'}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+                    {r.product?.name} · <span className="figures">{formatDate(r.createdAt)}</span>
+                  </p>
+
+                  {r.textContent && (
+                    <p className="mt-3 text-sm leading-relaxed text-ink-2">{r.textContent}</p>
+                  )}
                 </div>
-                <div className="text-xs text-ink-muted mb-1">
-                  {r.product?.name} · {formatDate(r.createdAt)}
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => toggleApprove(r)}
+                    className={`btn btn-sm ${r.isApproved ? 'btn-quiet' : 'btn-outline'}`}
+                  >
+                    <Check size={14} aria-hidden="true" />
+                    {r.isApproved ? 'Bekor qilish' : 'Tasdiqlash'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(r)}
+                    className="icon-btn icon-btn-critical"
+                    aria-label={`${r.customerName} sharhini o'chirish`}
+                    title="O'chirish"
+                  >
+                    <Trash2 size={15} aria-hidden="true" />
+                  </button>
                 </div>
-                {r.textContent && <p className="text-sm text-ink-muted">{r.textContent}</p>}
               </div>
-              <div className="flex flex-col gap-2 items-end shrink-0">
-                <button
-                  type="button"
-                  onClick={() => toggleApprove(r)}
-                  className={`badge ${r.isApproved ? 'badge-green' : 'badge-neutral'}`}
-                >
-                  <CircleCheck size={12} aria-hidden="true" />
-                  {r.isApproved ? 'Tasdiqlangan' : 'Tasdiqlash'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(r)}
-                  className="btn-icon hover:text-danger!"
-                  aria-label="O'chirish"
-                  title="O'chirish"
-                >
-                  <Trash2 size={16} aria-hidden="true" />
-                </button>
-              </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       <ConfirmModal
         open={!!deleteTarget}
-        title="Sharhni o'chirishni tasdiqlaysizmi?"
-        description={deleteTarget ? `"${deleteTarget.customerName}" tomonidan qoldirilgan sharh o'chiriladi.` : ''}
+        title="Sharhni oʼchirasizmi?"
+        description={deleteTarget ? `"${deleteTarget.customerName}" tomonidan qoldirilgan sharh oʼchiriladi.` : ''}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

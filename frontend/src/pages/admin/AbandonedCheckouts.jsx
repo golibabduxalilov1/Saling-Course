@@ -4,32 +4,42 @@ import { adminApi } from '../../api/client';
 import { formatMoney, formatDate } from '../../utils/format';
 import EmptyState from '../../components/EmptyState';
 import { TableSkeleton } from '../../components/Skeleton';
+import PageHeader from '../../components/admin/PageHeader';
 
 export default function AbandonedCheckouts() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    adminApi.get('/abandoned-checkouts').then((res) => setRecords(res.data)).finally(() => setLoading(false));
+    adminApi
+      .get('/abandoned-checkouts')
+      .then((res) => setRecords(res.data))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-2">
-        <ShoppingCart size={22} className="text-navy-900" aria-hidden="true" />
-        <h1 className="text-2xl font-bold text-ink">Tugallanmagan buyurtmalar</h1>
-      </div>
+    <div>
+      <PageHeader
+        kicker="Sotuv"
+        title="Tugallanmagan buyurtmalar"
+        description="Checkout bosqichida to'xtab qolgan mijozlar — qayta bog'lanish uchun."
+      />
+
       {loading ? (
-        <div className="table-wrap">
+        <div className="tbl-frame">
           <TableSkeleton rows={6} cols={6} />
         </div>
       ) : records.length === 0 ? (
-        <div className="card">
-          <EmptyState icon={ShoppingCart} title="Ma'lumot yo'q" description="Hozircha hech qanday tugallanmagan buyurtma yo'q." />
+        <div className="panel">
+          <EmptyState
+            icon={ShoppingCart}
+            title="Maʼlumot yoʼq"
+            description="Hozircha hech qanday tugallanmagan buyurtma yoʼq."
+          />
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="data-table">
+        <div className="tbl-frame">
+          <table className="tbl">
             <thead>
               <tr>
                 <th>Ism</th>
@@ -44,11 +54,23 @@ export default function AbandonedCheckouts() {
               {records.map((r) => (
                 <tr key={r.id}>
                   <td className="font-medium text-ink">{r.name || '—'}</td>
-                  <td>{r.phone}</td>
+                  <td>
+                    <a href={`tel:${r.phone}`} className="link font-mono text-xs text-ink-2 figures">
+                      {r.phone}
+                    </a>
+                  </td>
                   <td>{r.product?.name || '—'}</td>
-                  <td>{r.amount ? formatMoney(r.amount) : '—'}</td>
-                  <td className="text-ink-muted">{r.utmSource || '—'}</td>
-                  <td className="text-ink-muted">{formatDate(r.createdAt)}</td>
+                  <td className="figures text-ink">{r.amount ? formatMoney(r.amount) : '—'}</td>
+                  <td>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                      {r.utmSource || '—'}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="font-mono text-[11px] text-ink-3 figures whitespace-nowrap">
+                      {formatDate(r.createdAt)}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

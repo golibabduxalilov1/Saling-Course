@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  Award,
-  Clock,
+  ArrowRight,
   FileText,
-  GraduationCap,
   ImageOff,
-  KeyRound,
   Play,
   ShieldCheck,
-  ShoppingCart,
-  Sparkles,
+  ShoppingBag,
+  Star,
   X,
 } from 'lucide-react';
 import { api } from '../api/client';
@@ -18,9 +15,33 @@ import { useCart } from '../context/CartContext';
 import TariffTable from '../components/TariffTable';
 import ReviewList from '../components/ReviewList';
 import LeadCaptureForm from '../components/LeadCaptureForm';
+import { Skeleton } from '../components/Skeleton';
 import { formatMoney } from '../utils/format';
 import { track } from '../utils/track';
 import { TYPE_LABELS } from '../components/ProductCard';
+
+function Block({ index, title, children, className = '' }) {
+  return (
+    <section className={`border-t border-ink pt-6 ${className}`}>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8">
+        <div className="md:col-span-3">
+          <span className="t-index block mb-2">{index}</span>
+          <h2 className="t-heading text-lg text-ink">{title}</h2>
+        </div>
+        <div className="md:col-span-9">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function SpecRow({ label, value }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+      <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 shrink-0">{label}</dt>
+      <dd className="text-sm text-ink text-right">{value}</dd>
+    </div>
+  );
+}
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -44,24 +65,45 @@ export default function ProductDetail() {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  useEffect(() => {
+    if (!showDemo) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setShowDemo(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showDemo]);
+
   if (loading) {
     return (
-      <div className="container-page py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-pulse">
-          <div className="aspect-video rounded-xl bg-border-soft/70" />
-          <div className="flex flex-col gap-4">
-            <div className="h-4 w-24 rounded bg-border-soft/70" />
-            <div className="h-8 w-3/4 rounded bg-border-soft/70" />
-            <div className="h-4 w-full rounded bg-border-soft/70" />
-            <div className="h-10 w-40 rounded bg-border-soft/70" />
+      <div className="shell py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-7 flex flex-col gap-4">
+            <Skeleton className="h-2.5 w-32" />
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="aspect-[16/10] w-full mt-4" />
+          </div>
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
           </div>
         </div>
       </div>
     );
   }
+
   if (notFound || !product) {
     return (
-      <div className="container-page py-16 text-center text-ink-muted">Mahsulot topilmadi.</div>
+      <div className="shell py-32 text-center">
+        <span className="t-kicker">Xatolik 404</span>
+        <h1 className="t-display text-4xl text-ink mt-6">Mahsulot topilmadi</h1>
+        <p className="mt-4 text-ink-3">Soʼralgan sahifa mavjud emas yoki oʼchirilgan.</p>
+        <Link to="/katalog" className="btn btn-solid mt-8">
+          Katalogga qaytish
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
     );
   }
 
@@ -70,205 +112,265 @@ export default function ProductDetail() {
     ? Math.round(100 - (Number(product.discountPrice) / Number(product.price)) * 100)
     : 0;
 
+  const makeItem = (tariff) => ({
+    productId: product.id,
+    productName: product.name,
+    productSlug: product.slug,
+    productImage: product.mainImage,
+    tariffId: tariff ? tariff.id : null,
+    tariffName: tariff ? tariff.name : null,
+    unitPrice: tariff
+      ? Number(tariff.discountPrice ?? tariff.price)
+      : Number(product.discountPrice ?? product.price),
+    quantity: 1,
+  });
+
   const buyNow = (tariff) => {
-    const item = {
-      productId: product.id,
-      productName: product.name,
-      productSlug: product.slug,
-      productImage: product.mainImage,
-      tariffId: tariff ? tariff.id : null,
-      tariffName: tariff ? tariff.name : null,
-      unitPrice: tariff ? Number(tariff.discountPrice ?? tariff.price) : Number(product.discountPrice ?? product.price),
-      quantity: 1,
-    };
+    const item = makeItem(tariff);
     track('ADD_TO_CART', product.id);
     navigate('/checkout', { state: { buyNow: item } });
   };
 
   const addToCart = (tariff) => {
-    const item = {
-      productId: product.id,
-      productName: product.name,
-      productSlug: product.slug,
-      productImage: product.mainImage,
-      tariffId: tariff ? tariff.id : null,
-      tariffName: tariff ? tariff.name : null,
-      unitPrice: tariff ? Number(tariff.discountPrice ?? tariff.price) : Number(product.discountPrice ?? product.price),
-      quantity: 1,
-    };
-    addItem(item);
+    addItem(makeItem(tariff));
     track('ADD_TO_CART', product.id);
   };
 
+  const avgRating = product.reviews?.length
+    ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
+    : 0;
+
+  const specs = [
+    product.duration && { label: 'Davomiyligi', value: product.duration },
+    product.format && { label: 'Format', value: product.format },
+    product.accessDurationDays && { label: 'Kirish muddati', value: `${product.accessDurationDays} kun` },
+    product.certificateAvailable && { label: 'Sertifikat', value: 'Mavjud' },
+  ].filter(Boolean);
+
   return (
-    <div className="container-page py-8 flex flex-col gap-10 pb-28 md:pb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="aspect-video bg-ivory rounded-xl overflow-hidden relative">
-          {product.mainImage ? (
-            <img src={product.mainImage} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-linear-to-br from-navy-900 to-navy-700 text-white/50">
-              <ImageOff size={40} strokeWidth={1.5} aria-hidden="true" />
-              <span className="text-sm font-medium text-white/40">Rasm mavjud emas</span>
-            </div>
-          )}
-          {hasDiscount && (
-            <span className="badge badge-red absolute top-3 left-3">-{discountPercent}%</span>
-          )}
+    <div className="pb-28 lg:pb-0">
+      {/* ── Breadcrumb ──────────────────────────────────────────────────── */}
+      <nav aria-label="Breadcrumb" className="shell pt-8">
+        <ol className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+          <li>
+            <Link to="/" className="link hover:text-accent">
+              Bosh sahifa
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link to="/katalog" className="link hover:text-accent">
+              Katalog
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="text-ink truncate max-w-[40vw]" aria-current="page">
+            {product.name}
+          </li>
+        </ol>
+      </nav>
+
+      {/* ── Title ───────────────────────────────────────────────────────── */}
+      <div className="shell pt-10 pb-10">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="t-kicker t-kicker-accent">{TYPE_LABELS[product.type] || product.type}</span>
+          {product.isBestseller && <span className="tag tag-accent">Bestseller</span>}
+          {product.isNew && <span className="tag tag-neutral">Yangi</span>}
         </div>
 
-        <div className="flex flex-col gap-4">
-          <span className="text-xs font-medium text-ink-muted">{TYPE_LABELS[product.type] || product.type}</span>
-          <h1 className="text-display text-2xl md:text-3xl text-ink">{product.name}</h1>
-          {product.shortDescription && <p className="text-ink-muted">{product.shortDescription}</p>}
+        <h1 className="t-display text-[36px] md:text-[56px] text-ink mt-6 max-w-4xl">{product.name}</h1>
 
-          <div className="flex items-baseline gap-3">
-            {hasDiscount ? (
-              <>
-                <span className="text-3xl font-extrabold text-ink tabular-nums">{formatMoney(product.discountPrice)}</span>
-                <span className="text-lg text-ink-muted line-through tabular-nums">{formatMoney(product.price)}</span>
-              </>
-            ) : (
-              <span className="text-3xl font-extrabold text-ink tabular-nums">{formatMoney(product.price)}</span>
+        {avgRating > 0 && (
+          <div className="mt-6 flex items-center gap-3">
+            <span className="flex items-center gap-0.5" aria-hidden="true">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  strokeWidth={1.5}
+                  className={i < Math.round(avgRating) ? 'fill-ink text-ink' : 'fill-none text-line-2'}
+                />
+              ))}
+            </span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 figures">
+              {avgRating.toFixed(1)} / 5 · {product.reviews.length} sharh
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Media + purchase ────────────────────────────────────────────── */}
+      <div className="shell">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          <div className="lg:col-span-7">
+            <div className="relative aspect-[16/10] border border-line rounded-lg overflow-hidden bg-veil motion-reveal">
+              {product.mainImage ? (
+                <img src={product.mainImage} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-ink-3">
+                  <ImageOff size={32} strokeWidth={1.25} aria-hidden="true" />
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em]">Rasm mavjud emas</span>
+                </div>
+              )}
+              {hasDiscount && (
+                <span className="absolute top-4 left-4 tag tag-solid figures">−{discountPercent}%</span>
+              )}
+            </div>
+
+            {product.shortDescription && (
+              <p className="mt-8 text-lg leading-relaxed text-ink-2 max-w-2xl">{product.shortDescription}</p>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button className="btn-accent flex-1" onClick={() => buyNow(null)}>
-              Hozir sotib olish
-            </button>
-            <button className="btn-secondary flex-1" onClick={() => addToCart(null)}>
-              <ShoppingCart size={17} aria-hidden="true" />
-              Savatga qo'shish
-            </button>
-          </div>
-          {product.demoMaterials?.length > 0 && (
-            <button
-              className="text-sm font-semibold text-navy-900 hover:text-gold-600 transition-colors text-left inline-flex items-center gap-1.5"
-              onClick={() => setShowDemo(true)}
-            >
-              <Play size={15} aria-hidden="true" />
-              Bepul namunani ko'rish
-            </button>
-          )}
+          <aside className="lg:col-span-5 lg:sticky lg:top-28">
+            <div className="panel p-6 md:p-8">
+              <span className="t-kicker">Narx</span>
 
-          <div className="grid grid-cols-2 gap-3 text-sm text-ink-muted mt-2">
-            {product.duration && (
-              <div className="flex items-center gap-1.5">
-                <Clock size={15} className="text-gold-600 shrink-0" aria-hidden="true" />
-                Davomiyligi: {product.duration}
+              <div className="mt-4">
+                {hasDiscount && (
+                  <p className="font-mono text-sm text-ink-3 line-through figures">
+                    {formatMoney(product.price)}
+                  </p>
+                )}
+                <p className="t-display text-[40px] text-ink figures mt-1">
+                  {formatMoney(hasDiscount ? product.discountPrice : product.price)}
+                </p>
               </div>
-            )}
-            {product.format && (
-              <div className="flex items-center gap-1.5">
-                <GraduationCap size={15} className="text-gold-600 shrink-0" aria-hidden="true" />
-                Format: {product.format}
+
+              <div className="mt-8 flex flex-col gap-2">
+                <button type="button" className="btn btn-lg btn-accent w-full" onClick={() => buyNow(null)}>
+                  Hozir sotib olish
+                  <ArrowRight size={17} aria-hidden="true" />
+                </button>
+                <button type="button" className="btn btn-outline w-full" onClick={() => addToCart(null)}>
+                  <ShoppingBag size={16} aria-hidden="true" />
+                  Savatga qoʼshish
+                </button>
               </div>
-            )}
-            {product.certificateAvailable && (
-              <div className="flex items-center gap-1.5">
-                <Award size={15} className="text-gold-600 shrink-0" aria-hidden="true" />
-                Sertifikat mavjud
-              </div>
-            )}
-            {product.accessDurationDays && (
-              <div className="flex items-center gap-1.5">
-                <KeyRound size={15} className="text-gold-600 shrink-0" aria-hidden="true" />
-                Kirish: {product.accessDurationDays} kun
-              </div>
-            )}
-          </div>
+
+              {product.demoMaterials?.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowDemo(true)}
+                  className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-2 hover:text-accent transition-colors duration-150 cursor-pointer"
+                >
+                  <Play size={13} aria-hidden="true" />
+                  Bepul namunani koʼrish
+                </button>
+              )}
+
+              {specs.length > 0 && (
+                <dl className="mt-8 pt-6 border-t border-line">
+                  {specs.map((s) => (
+                    <SpecRow key={s.label} label={s.label} value={s.value} />
+                  ))}
+                </dl>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
 
-      {product.fullDescription && (
-        <section>
-          <h2 className="text-h2 text-xl text-ink mb-3">Batafsil</h2>
-          <p className="text-ink-muted whitespace-pre-line">{product.fullDescription}</p>
-        </section>
-      )}
+      {/* ── Content blocks ──────────────────────────────────────────────── */}
+      <div className="shell mt-20 md:mt-28 flex flex-col gap-16 md:gap-20">
+        {product.fullDescription && (
+          <Block index="01" title="Batafsil">
+            <p className="text-[17px] leading-relaxed text-ink-2 whitespace-pre-line max-w-3xl">
+              {product.fullDescription}
+            </p>
+          </Block>
+        )}
 
-      {(product.forWhom || product.results) && (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {product.forWhom && (
-            <div className="card p-5">
-              <h3 className="font-bold text-ink mb-2">Kimlar uchun</h3>
-              <p className="text-sm text-ink-muted">{product.forWhom}</p>
+        {(product.forWhom || product.results) && (
+          <Block index="02" title="Kimlar uchun va natija">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-line border border-line rounded-lg overflow-hidden">
+              {product.forWhom && (
+                <div className="bg-panel p-6">
+                  <h3 className="t-kicker mb-4">Kimlar uchun</h3>
+                  <p className="text-[15px] leading-relaxed text-ink-2">{product.forWhom}</p>
+                </div>
+              )}
+              {product.results && (
+                <div className="bg-panel p-6">
+                  <h3 className="t-kicker mb-4">Qanday natija olasiz</h3>
+                  <p className="text-[15px] leading-relaxed text-ink-2">{product.results}</p>
+                </div>
+              )}
             </div>
-          )}
-          {product.results && (
-            <div className="card p-5">
-              <h3 className="font-bold text-ink mb-2">Qanday natija olasiz</h3>
-              <p className="text-sm text-ink-muted">{product.results}</p>
+          </Block>
+        )}
+
+        {product.instructorInfo && (
+          <Block index="03" title="Oʼqituvchi">
+            <p className="text-[15px] leading-relaxed text-ink-2 max-w-3xl">{product.instructorInfo}</p>
+          </Block>
+        )}
+
+        {product.tariffs?.length > 0 && (
+          <Block index="04" title="Tariflar">
+            <TariffTable tariffs={product.tariffs} onBuyNow={buyNow} onAddToCart={addToCart} />
+          </Block>
+        )}
+
+        {product.guaranteeTerms && (
+          <Block index="05" title="Kafolat">
+            <div className="panel p-6 bg-positive-tint border-positive/25">
+              <h3 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-positive mb-3">
+                <ShieldCheck size={14} aria-hidden="true" />
+                Kafolat shartlari
+              </h3>
+              <p className="text-[15px] leading-relaxed text-ink-2">{product.guaranteeTerms}</p>
             </div>
-          )}
-        </section>
-      )}
+          </Block>
+        )}
 
-      {product.instructorInfo && (
-        <section className="card p-5">
-          <h3 className="font-bold text-ink mb-2">O'qituvchi haqida</h3>
-          <p className="text-sm text-ink-muted">{product.instructorInfo}</p>
-        </section>
-      )}
+        <Block index="06" title="Mijozlar fikri">
+          <ReviewList reviews={product.reviews} />
+        </Block>
 
-      {product.tariffs?.length > 0 && (
-        <section>
-          <h2 className="text-h2 text-xl text-ink mb-4">Tariflar</h2>
-          <TariffTable tariffs={product.tariffs} onBuyNow={buyNow} onAddToCart={addToCart} />
-        </section>
-      )}
+        <Block index="07" title="Bepul namuna" className="pb-8">
+          <div className="max-w-lg">
+            <LeadCaptureForm productId={product.id} title="Bepul namuna soʼrash" />
+          </div>
+        </Block>
+      </div>
 
-      {product.guaranteeTerms && (
-        <section className="card p-5 bg-emerald-500/5 border-emerald-500/20">
-          <h3 className="font-bold text-ink mb-1 flex items-center gap-2">
-            <ShieldCheck size={18} className="text-emerald-500" aria-hidden="true" />
-            Kafolat shartlari
-          </h3>
-          <p className="text-sm text-ink-muted">{product.guaranteeTerms}</p>
-        </section>
-      )}
-
-      <section>
-        <h2 className="text-h2 text-xl text-ink mb-4">Mijozlar fikrlari</h2>
-        <ReviewList reviews={product.reviews} />
-      </section>
-
-      <section className="max-w-md">
-        <LeadCaptureForm productId={product.id} title="Bepul namuna so'rash" />
-      </section>
-
+      {/* ── Demo modal ──────────────────────────────────────────────────── */}
       {showDemo && (
         <div
-          className="fixed inset-0 bg-navy-950/60 flex items-center justify-center p-4 z-50"
+          className="motion-reveal fixed inset-0 z-[900] bg-obsidian/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
           onClick={() => setShowDemo(false)}
+          role="presentation"
         >
           <div
-            className="bg-surface rounded-xl p-5 max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="demo-title"
+            className="motion-pop bg-panel w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-lg shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg text-ink flex items-center gap-2">
-                <Sparkles size={18} className="text-gold-600" aria-hidden="true" />
+            <div className="sticky top-0 bg-panel border-b border-line px-6 py-5 flex items-center justify-between gap-4">
+              <h2 id="demo-title" className="t-heading text-lg text-ink">
                 Bepul namunalar
-              </h3>
-              <button onClick={() => setShowDemo(false)} className="btn-icon" aria-label="Yopish">
-                <X size={20} aria-hidden="true" />
+              </h2>
+              <button type="button" onClick={() => setShowDemo(false)} className="icon-btn -mr-2" aria-label="Yopish">
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
-            <div className="flex flex-col gap-3">
+
+            <div className="p-6 flex flex-col gap-px bg-line border-y border-line">
               {product.demoMaterials.map((demo) => (
-                <div key={demo.id} className="card p-3">
-                  <p className="font-semibold text-sm text-ink mb-1">{demo.title}</p>
+                <div key={demo.id} className="bg-panel py-4 first:pt-0 last:pb-0">
+                  <p className="t-heading text-[15px] text-ink">{demo.title}</p>
                   {demo.type === 'VIDEO' && demo.url && (
                     <a
                       href={demo.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-navy-900 hover:text-gold-600 transition-colors text-sm font-medium inline-flex items-center gap-1.5"
+                      className="link mt-2 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3 hover:text-accent"
                     >
-                      <Play size={14} aria-hidden="true" />
-                      Videoni ko'rish
+                      <Play size={13} aria-hidden="true" />
+                      Videoni koʼrish
                     </a>
                   )}
                   {demo.type === 'PDF' && demo.url && (
@@ -276,17 +378,17 @@ export default function ProductDetail() {
                       href={demo.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-navy-900 hover:text-gold-600 transition-colors text-sm font-medium inline-flex items-center gap-1.5"
+                      className="link mt-2 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3 hover:text-accent"
                     >
-                      <FileText size={14} aria-hidden="true" />
-                      PDF-ni ko'rish
+                      <FileText size={13} aria-hidden="true" />
+                      PDF-ni ochish
                     </a>
                   )}
                   {demo.type === 'IMAGE' && demo.url && (
-                    <img src={demo.url} alt={demo.title} className="rounded-lg" />
+                    <img src={demo.url} alt={demo.title} className="mt-3 w-full rounded-md border border-line" />
                   )}
                   {demo.type === 'TEXT' && demo.content && (
-                    <p className="text-sm text-ink-muted">{demo.content}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-3">{demo.content}</p>
                   )}
                 </div>
               ))}
@@ -295,13 +397,19 @@ export default function ProductDetail() {
         </div>
       )}
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface border-t border-border-soft p-3 flex gap-3 shadow-[0_-4px_16px_rgba(11,23,48,0.08)]">
-        <button className="btn-secondary flex-1" onClick={() => addToCart(null)}>
-          <ShoppingCart size={17} aria-hidden="true" />
-          Savatga
+      {/* ── Mobile purchase bar ─────────────────────────────────────────── */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-panel border-t border-line px-4 py-3 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">Narx</p>
+          <p className="font-display text-lg font-semibold tracking-[-0.03em] text-ink figures truncate">
+            {formatMoney(hasDiscount ? product.discountPrice : product.price)}
+          </p>
+        </div>
+        <button type="button" className="icon-btn border border-line" onClick={() => addToCart(null)} aria-label="Savatga qoʼshish">
+          <ShoppingBag size={18} aria-hidden="true" />
         </button>
-        <button className="btn-accent flex-1" onClick={() => buyNow(null)}>
-          Hozir sotib olish
+        <button type="button" className="btn btn-accent" onClick={() => buyNow(null)}>
+          Sotib olish
         </button>
       </div>
     </div>

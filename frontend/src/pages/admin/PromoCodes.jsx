@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { BadgePercent, CircleX, Plus, Trash2 } from 'lucide-react';
+import { BadgePercent, CircleAlert, Loader2, Plus, Trash2 } from 'lucide-react';
 import { adminApi } from '../../api/client';
 import { formatDate } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../../components/EmptyState';
 import { TableSkeleton } from '../../components/Skeleton';
 import ConfirmModal from '../../components/admin/ConfirmModal';
+import PageHeader from '../../components/admin/PageHeader';
 
 const empty = { code: '', discountType: 'PERCENT', value: '', expiresAt: '', usageLimit: '', minOrderAmount: '' };
 
@@ -82,151 +83,193 @@ export default function PromoCodes() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-2">
-        <BadgePercent size={22} className="text-navy-900" aria-hidden="true" />
-        <h1 className="text-2xl font-bold text-ink">Promo-kodlar</h1>
-      </div>
+    <div>
+      <PageHeader
+        kicker="Sotuv"
+        title="Promo-kodlar"
+        description="Chegirma kodlarini yarating va faolligini boshqaring."
+      />
 
-      <form onSubmit={handleSubmit} className="card p-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="form-label" htmlFor="pc-code">
-            Kod<span className="required">*</span>
-          </label>
-          <input
-            id="pc-code"
-            className="input-field"
-            placeholder="masalan SALE20"
-            value={form.code}
-            onChange={(e) => setForm({ ...form, code: e.target.value })}
-            required
-          />
+      <form onSubmit={handleSubmit} className="panel mb-8" noValidate>
+        <h2 className="px-5 py-4 border-b border-line font-mono text-[11px] uppercase tracking-[0.12em] text-ink-2">
+          Yangi promo-kod
+        </h2>
+
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div>
+            <label className="field-label" htmlFor="pc-code">
+              Kod<span className="req">*</span>
+            </label>
+            <input
+              id="pc-code"
+              className={`field font-mono uppercase ${error ? 'field-invalid' : ''}`}
+              placeholder="SALE20"
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value })}
+              aria-invalid={!!error}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="pc-type">
+              Chegirma turi
+            </label>
+            <select
+              id="pc-type"
+              className="field pick"
+              value={form.discountType}
+              onChange={(e) => setForm({ ...form, discountType: e.target.value })}
+            >
+              <option value="PERCENT">Foizli chegirma</option>
+              <option value="FIXED">Aniq summa</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="pc-value">
+              Miqdori<span className="req">*</span>
+            </label>
+            <input
+              id="pc-value"
+              type="number"
+              className="field figures"
+              placeholder={form.discountType === 'PERCENT' ? '20' : '50000'}
+              value={form.value}
+              onChange={(e) => setForm({ ...form, value: e.target.value })}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="pc-expires">
+              Amal qilish muddati <span className="optional">(ixtiyoriy)</span>
+            </label>
+            <input
+              id="pc-expires"
+              type="date"
+              className="field figures"
+              value={form.expiresAt}
+              onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="pc-limit">
+              Foydalanish limiti <span className="optional">(ixtiyoriy)</span>
+            </label>
+            <input
+              id="pc-limit"
+              type="number"
+              className="field figures"
+              value={form.usageLimit}
+              onChange={(e) => setForm({ ...form, usageLimit: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="pc-min">
+              Minimal summa <span className="optional">(ixtiyoriy)</span>
+            </label>
+            <input
+              id="pc-min"
+              type="number"
+              className="field figures"
+              value={form.minOrderAmount}
+              onChange={(e) => setForm({ ...form, minOrderAmount: e.target.value })}
+            />
+          </div>
+
+          {error && (
+            <p className="field-error sm:col-span-2 xl:col-span-3" role="alert">
+              <CircleAlert size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+              {error}
+            </p>
+          )}
         </div>
-        <div>
-          <label className="form-label" htmlFor="pc-type">
-            Chegirma turi
-          </label>
-          <select
-            id="pc-type"
-            className="input-field"
-            value={form.discountType}
-            onChange={(e) => setForm({ ...form, discountType: e.target.value })}
-          >
-            <option value="PERCENT">Foizli chegirma</option>
-            <option value="FIXED">Aniq summa</option>
-          </select>
+
+        <div className="px-5 py-4 border-t border-line">
+          <button type="submit" className="btn btn-accent" disabled={submitting}>
+            {submitting ? (
+              <>
+                <Loader2 size={15} className="motion-spin" aria-hidden="true" />
+                Yaratilmoqda
+              </>
+            ) : (
+              <>
+                <Plus size={15} aria-hidden="true" />
+                Promo-kod yaratish
+              </>
+            )}
+          </button>
         </div>
-        <div>
-          <label className="form-label" htmlFor="pc-value">
-            Miqdori<span className="required">*</span>
-          </label>
-          <input
-            id="pc-value"
-            className="input-field"
-            type="number"
-            value={form.value}
-            onChange={(e) => setForm({ ...form, value: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <label className="form-label" htmlFor="pc-expires">
-            Amal qilish muddati
-          </label>
-          <input
-            id="pc-expires"
-            className="input-field"
-            type="date"
-            value={form.expiresAt}
-            onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="form-label" htmlFor="pc-limit">
-            Foydalanish limiti
-          </label>
-          <input
-            id="pc-limit"
-            className="input-field"
-            type="number"
-            value={form.usageLimit}
-            onChange={(e) => setForm({ ...form, usageLimit: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="form-label" htmlFor="pc-min">
-            Minimal buyurtma summasi
-          </label>
-          <input
-            id="pc-min"
-            className="input-field"
-            type="number"
-            value={form.minOrderAmount}
-            onChange={(e) => setForm({ ...form, minOrderAmount: e.target.value })}
-          />
-        </div>
-        {error && (
-          <p className="form-error sm:col-span-3">
-            <CircleX size={14} aria-hidden="true" />
-            {error}
-          </p>
-        )}
-        <button type="submit" className="btn-primary sm:col-span-3" disabled={submitting}>
-          <Plus size={16} aria-hidden="true" />
-          {submitting ? 'Yaratilmoqda...' : 'Promo-kod yaratish'}
-        </button>
       </form>
 
       {loading ? (
-        <div className="table-wrap">
+        <div className="tbl-frame">
           <TableSkeleton rows={5} cols={6} />
         </div>
       ) : promoCodes.length === 0 ? (
-        <div className="card">
-          <EmptyState icon={BadgePercent} title="Promo-kod yo'q" description="Hozircha hech qanday promo-kod yaratilmagan." />
+        <div className="panel">
+          <EmptyState
+            icon={BadgePercent}
+            title="Promo-kod yoʼq"
+            description="Yuqoridagi shakl orqali birinchi promo-kodni yarating."
+          />
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="data-table">
+        <div className="tbl-frame">
+          <table className="tbl">
             <thead>
               <tr>
                 <th>Kod</th>
                 <th>Chegirma</th>
                 <th>Foydalanilgan</th>
                 <th>Muddati</th>
-                <th>Faol</th>
-                <th></th>
+                <th>Holat</th>
+                <th className="text-right">Amallar</th>
               </tr>
             </thead>
             <tbody>
               {promoCodes.map((p) => (
                 <tr key={p.id}>
-                  <td className="font-semibold text-ink">{p.code}</td>
-                  <td>{p.discountType === 'PERCENT' ? `${p.value}%` : `${p.value} so'm`}</td>
                   <td>
+                    <span className="font-mono text-sm font-medium uppercase text-ink">{p.code}</span>
+                  </td>
+                  <td className="figures text-ink">
+                    {p.discountType === 'PERCENT' ? `${p.value}%` : `${p.value} soʼm`}
+                  </td>
+                  <td className="figures">
                     {p.usedCount}
                     {p.usageLimit ? ` / ${p.usageLimit}` : ''}
                   </td>
-                  <td className="text-ink-muted">{p.expiresAt ? formatDate(p.expiresAt) : 'Cheklanmagan'}</td>
+                  <td>
+                    <span className="font-mono text-[11px] text-ink-3 figures whitespace-nowrap">
+                      {p.expiresAt ? formatDate(p.expiresAt) : 'Cheklanmagan'}
+                    </span>
+                  </td>
                   <td>
                     <button
                       type="button"
                       onClick={() => toggleActive(p)}
-                      className={`badge ${p.isActive ? 'badge-green' : 'badge-neutral'}`}
+                      className={`tag ${p.isActive ? 'tag-positive' : 'tag-neutral'}`}
+                      aria-label={`${p.code} — ${p.isActive ? 'nofaol qilish' : 'faollashtirish'}`}
                     >
                       {p.isActive ? 'Faol' : 'Nofaol'}
                     </button>
                   </td>
-                  <td className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(p)}
-                      className="btn-icon hover:text-danger!"
-                      aria-label="O'chirish"
-                      title="O'chirish"
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
+                  <td>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(p)}
+                        className="icon-btn icon-btn-critical"
+                        aria-label={`${p.code} — o'chirish`}
+                        title="O'chirish"
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -237,8 +280,8 @@ export default function PromoCodes() {
 
       <ConfirmModal
         open={!!deleteTarget}
-        title="Promo-kodni o'chirishni tasdiqlaysizmi?"
-        description={deleteTarget ? `"${deleteTarget.code}" promo-kodi butunlay o'chiriladi.` : ''}
+        title="Promo-kodni oʼchirasizmi?"
+        description={deleteTarget ? `"${deleteTarget.code}" promo-kodi butunlay oʼchiriladi.` : ''}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

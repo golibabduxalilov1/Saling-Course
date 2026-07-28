@@ -11,12 +11,6 @@ const TYPE_LABELS = {
   EBOOK: 'Elektron kitob',
   PDF_GUIDE: 'PDF qo‘llanma',
   AUDIO: 'Audio material',
-  TEMPLATE: 'Shablon',
-  FILE_BUNDLE: 'Fayllar to‘plami',
-  SUBSCRIPTION: 'Obuna',
-  SERVICE: 'Xizmat',
-  PHYSICAL: 'Jismoniy mahsulot',
-  BUNDLE: 'Paket',
 };
 
 export default function ProductCard({ product }) {
@@ -28,49 +22,60 @@ export default function ProductCard({ product }) {
   return (
     <Link
       to={`/mahsulot/${product.slug}`}
-      className="card card-hover overflow-hidden flex flex-col group"
+      className="panel panel-lift group flex flex-col h-full overflow-hidden"
     >
-      <div className="aspect-video bg-ivory relative overflow-hidden">
+      <div className="relative aspect-[4/3] bg-veil border-b border-line overflow-hidden">
         {product.mainImage ? (
           <img
             src={product.mainImage}
-            alt={product.name}
+            alt=""
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-300 ease-[cubic-bezier(0.2,0,0,1)] group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 bg-linear-to-br from-navy-900 to-navy-700 text-white/50">
-            <ImageOff size={28} strokeWidth={1.5} aria-hidden="true" />
-            <span className="text-xs font-medium text-white/40">Rasm mavjud emas</span>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-ink-3">
+            <ImageOff size={22} strokeWidth={1.5} aria-hidden="true" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em]">Rasm yoʼq</span>
           </div>
         )}
-        <div className="absolute top-2 left-2 flex gap-1.5">
-          {product.isBestseller && <span className="badge badge-gold">Bestseller</span>}
-          {product.isNew && <span className="badge badge-blue">Yangi</span>}
-          {hasDiscount && <span className="badge badge-red">-{discountPercent}%</span>}
-        </div>
+
+        {hasDiscount && (
+          <span className="absolute top-3 right-3 tag tag-solid figures">−{discountPercent}%</span>
+        )}
       </div>
-      <div className="p-4 flex flex-col gap-2 flex-1">
-        <span className="text-xs text-ink-muted font-medium">{TYPE_LABELS[product.type] || product.type}</span>
-        <h3 className="font-semibold leading-snug line-clamp-2 text-ink">{product.name}</h3>
+
+      <div className="flex flex-col flex-1 p-5">
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <span className="t-kicker">{TYPE_LABELS[product.type] || product.type}</span>
+          {product.isBestseller && <span className="tag tag-accent">Bestseller</span>}
+          {product.isNew && <span className="tag tag-neutral">Yangi</span>}
+        </div>
+
+        <h3 className="t-heading text-[17px] text-ink line-clamp-2">{product.name}</h3>
+
         {product.shortDescription && (
-          <p className="text-sm text-ink-muted line-clamp-2 flex-1">{product.shortDescription}</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-3 line-clamp-2">{product.shortDescription}</p>
         )}
-        <div className="flex items-center justify-between gap-2 mt-1">
-          <div className="flex items-baseline gap-2">
-            {hasDiscount ? (
-              <>
-                <span className="font-bold text-lg text-ink tabular-nums">{formatMoney(product.discountPrice)}</span>
-                <span className="text-sm text-ink-muted line-through tabular-nums">{formatMoney(product.price)}</span>
-              </>
-            ) : (
-              <span className="font-bold text-lg text-ink tabular-nums">{formatMoney(product.price)}</span>
-            )}
+
+        <div className="mt-auto pt-5">
+          <div className="border-t border-line pt-4 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              {hasDiscount && (
+                <p className="font-mono text-[11px] text-ink-3 line-through figures mb-1">
+                  {formatMoney(product.price)}
+                </p>
+              )}
+              <p className="font-display text-xl font-semibold tracking-[-0.03em] text-ink figures">
+                {formatMoney(hasDiscount ? product.discountPrice : product.price)}
+              </p>
+            </div>
+            <span
+              className="shrink-0 w-9 h-9 flex items-center justify-center border border-line rounded-md text-ink-3 transition-colors duration-150 group-hover:bg-ink group-hover:border-ink group-hover:text-canvas"
+              aria-hidden="true"
+            >
+              <ArrowRight size={15} strokeWidth={2} />
+            </span>
           </div>
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-navy-900 group-hover:text-gold-600 transition-colors shrink-0">
-            Batafsil
-            <ArrowRight size={15} aria-hidden="true" />
-          </span>
         </div>
       </div>
     </Link>

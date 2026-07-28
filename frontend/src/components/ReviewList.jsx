@@ -1,50 +1,71 @@
 import { PlayCircle, Star } from 'lucide-react';
 
+function Stars({ rating }) {
+  return (
+    <span className="flex items-center gap-0.5" aria-label={`Reyting: ${rating} / 5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          size={12}
+          strokeWidth={1.5}
+          className={i < rating ? 'fill-ink text-ink' : 'fill-none text-line-2'}
+          aria-hidden="true"
+        />
+      ))}
+    </span>
+  );
+}
+
 export default function ReviewList({ reviews }) {
   if (!reviews || reviews.length === 0) {
-    return <p className="text-ink-muted text-sm">Hozircha sharhlar mavjud emas.</p>;
+    return (
+      <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3 py-8 border-t border-line">
+        Hozircha sharhlar mavjud emas
+      </p>
+    );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {reviews.map((review) => (
-        <div key={review.id} className="card p-5 flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-ivory border border-border-soft flex items-center justify-center font-bold text-ink-muted overflow-hidden shrink-0">
+    <ul className="border-t border-ink">
+      {reviews.map((review, i) => (
+        <li
+          key={review.id}
+          className={`motion-rise seq-${Math.min(i + 1, 8)} grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-8 border-b border-line`}
+        >
+          <div className="md:col-span-3 flex items-center gap-3">
+            <div className="w-10 h-10 shrink-0 rounded-md border border-line bg-veil overflow-hidden flex items-center justify-center font-display text-sm font-semibold text-ink-2">
               {review.customerImage ? (
-                <img src={review.customerImage} alt={review.customerName} className="w-full h-full object-cover" />
+                <img src={review.customerImage} alt="" className="w-full h-full object-cover" />
               ) : (
                 review.customerName?.[0]
               )}
             </div>
-            <div>
-              <div className="font-semibold text-sm text-ink">{review.customerName}</div>
-              <div className="flex items-center gap-0.5" aria-label={`${review.rating} / 5 yulduz`}>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={13}
-                    className={i < review.rating ? 'fill-gold-500 text-gold-500' : 'text-border-soft'}
-                    aria-hidden="true"
-                  />
-                ))}
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-ink truncate">{review.customerName}</p>
+              <div className="mt-1">
+                <Stars rating={review.rating} />
               </div>
             </div>
           </div>
-          {review.textContent && <p className="text-sm text-ink-muted">{review.textContent}</p>}
-          {review.videoUrl && (
-            <a
-              href={review.videoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-navy-900 font-semibold hover:text-gold-600 transition-colors"
-            >
-              <PlayCircle size={14} aria-hidden="true" />
-              Video sharhni ko'rish
-            </a>
-          )}
-        </div>
+
+          <div className="md:col-span-9">
+            {review.textContent && (
+              <p className="text-[15px] leading-relaxed text-ink-2">{review.textContent}</p>
+            )}
+            {review.videoUrl && (
+              <a
+                href={review.videoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="link mt-3 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3 hover:text-accent"
+              >
+                <PlayCircle size={13} aria-hidden="true" />
+                Video sharh
+              </a>
+            )}
+          </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

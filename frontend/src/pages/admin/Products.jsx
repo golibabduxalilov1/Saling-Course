@@ -4,9 +4,11 @@ import { Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import { adminApi } from '../../api/client';
 import { formatMoney } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
+import { TYPE_LABELS } from '../../components/ProductCard';
 import EmptyState from '../../components/EmptyState';
 import { TableSkeleton } from '../../components/Skeleton';
 import ConfirmModal from '../../components/admin/ConfirmModal';
+import PageHeader from '../../components/admin/PageHeader';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -17,7 +19,10 @@ export default function Products() {
 
   const load = () => {
     setLoading(true);
-    adminApi.get('/products').then((res) => setProducts(res.data)).finally(() => setLoading(false));
+    adminApi
+      .get('/products')
+      .then((res) => setProducts(res.data))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -39,79 +44,86 @@ export default function Products() {
     }
   };
 
+  const newButton = (
+    <Link to="/admin/products/new" className="btn btn-accent">
+      <Plus size={16} aria-hidden="true" />
+      Yangi mahsulot
+    </Link>
+  );
+
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-ink">Mahsulotlar</h1>
-        <Link to="/admin/products/new" className="btn-primary">
-          <Plus size={16} aria-hidden="true" />
-          Yangi mahsulot
-        </Link>
-      </div>
+    <div>
+      <PageHeader
+        kicker="Katalog"
+        title="Mahsulotlar"
+        description="Katalogdagi barcha kurslar va raqamli mahsulotlar."
+        actions={newButton}
+      />
 
       {loading ? (
-        <div className="table-wrap">
+        <div className="tbl-frame">
           <TableSkeleton rows={6} cols={6} />
         </div>
       ) : products.length === 0 ? (
-        <div className="card">
+        <div className="panel">
           <EmptyState
             icon={Package}
-            title="Mahsulot yo'q"
-            description="Hozircha hech qanday mahsulot qo'shilmagan."
-            action={
-              <Link to="/admin/products/new" className="btn-primary">
-                <Plus size={16} aria-hidden="true" />
-                Yangi mahsulot
-              </Link>
-            }
+            title="Mahsulot yoʼq"
+            description="Hozircha hech qanday mahsulot qoʼshilmagan."
+            action={newButton}
           />
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="data-table">
+        <div className="tbl-frame">
+          <table className="tbl">
             <thead>
               <tr>
                 <th>Nomi</th>
                 <th>Turi</th>
                 <th>Narx</th>
-                <th>Faol</th>
+                <th>Holat</th>
                 <th>Buyurtmalar</th>
-                <th></th>
+                <th className="text-right">Amallar</th>
               </tr>
             </thead>
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
-                  <td className="font-medium text-ink">{p.name}</td>
-                  <td className="text-ink-muted">{p.type}</td>
-                  <td>{formatMoney(p.discountPrice ?? p.price)}</td>
                   <td>
-                    {p.isActive ? (
-                      <span className="badge badge-green">Faol</span>
-                    ) : (
-                      <span className="badge badge-neutral">Nofaol</span>
-                    )}
+                    <Link to={`/admin/products/${p.id}`} className="link font-medium text-ink">
+                      {p.name}
+                    </Link>
                   </td>
-                  <td>{p._count?.orderItems ?? 0}</td>
-                  <td className="text-right">
+                  <td>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">
+                      {TYPE_LABELS[p.type] || p.type}
+                    </span>
+                  </td>
+                  <td className="figures text-ink">{formatMoney(p.discountPrice ?? p.price)}</td>
+                  <td>
+                    <span className={`tag ${p.isActive ? 'tag-positive' : 'tag-neutral'}`}>
+                      {p.isActive ? 'Faol' : 'Nofaol'}
+                    </span>
+                  </td>
+                  <td className="figures">{p._count?.orderItems ?? 0}</td>
+                  <td>
                     <div className="flex items-center justify-end gap-1">
                       <Link
                         to={`/admin/products/${p.id}`}
-                        className="btn-icon"
-                        aria-label="Tahrirlash"
+                        className="icon-btn"
+                        aria-label={`${p.name} — tahrirlash`}
                         title="Tahrirlash"
                       >
-                        <Pencil size={16} aria-hidden="true" />
+                        <Pencil size={15} aria-hidden="true" />
                       </Link>
                       <button
                         type="button"
                         onClick={() => setDeleteTarget(p)}
-                        className="btn-icon hover:text-danger!"
-                        aria-label="O'chirish"
+                        className="icon-btn icon-btn-critical"
+                        aria-label={`${p.name} — o'chirish`}
                         title="O'chirish"
                       >
-                        <Trash2 size={16} aria-hidden="true" />
+                        <Trash2 size={15} aria-hidden="true" />
                       </button>
                     </div>
                   </td>
@@ -124,8 +136,8 @@ export default function Products() {
 
       <ConfirmModal
         open={!!deleteTarget}
-        title="Mahsulotni o'chirishni tasdiqlaysizmi?"
-        description={deleteTarget ? `"${deleteTarget.name}" mahsuloti butunlay o'chiriladi.` : ''}
+        title="Mahsulotni oʼchirasizmi?"
+        description={deleteTarget ? `"${deleteTarget.name}" mahsuloti butunlay oʼchiriladi. Bu amalni qaytarib boʼlmaydi.` : ''}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

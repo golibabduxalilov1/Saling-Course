@@ -1,52 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SOTUV — DESIGN TOKENS
+   Style ......... Swiss Modernism 2.0 (12-col grid, mathematical spacing,
+                   high contrast, minimal decoration, one accent only)
+   Palette ....... achromatic zinc base + single accent #4F46E5
+   Type .......... Space Grotesk (display) / Inter (UI) / JetBrains Mono (data)
+   Grid unit ..... 4px  →  spacing scale is strictly 4 / 8 multiples
+   This block is the SINGLE source of truth. Nothing below or in any component
+   may introduce a raw colour, radius, shadow or font that is not defined here.
+   ═══════════════════════════════════════════════════════════════════════════ */
 @theme {
-  /* Primary — deep navy */
-  --color-navy-950: #060d1f;
-  --color-navy-900: #0b1730;
-  --color-navy-800: #142244;
-  --color-navy-700: #1e2f5c;
-  --color-navy-600: #2b4178;
+  /* ── Base grid unit ─────────────────────────────────────────────────── */
+  --spacing: 0.25rem; /* 4px */
 
-  /* Accent — elegant gold */
-  --color-gold-400: #e8c774;
-  --color-gold-500: #d4af37;
-  --color-gold-600: #b3902a;
+  /* ── Surfaces ───────────────────────────────────────────────────────── */
+  --color-canvas: #ffffff;
+  --color-panel: #ffffff;
+  --color-sunken: #fafafa;
+  --color-veil: #f4f4f5;
 
-  /* Accent — premium emerald (secondary accent / success) */
-  --color-emerald-500: #1f7a5c;
-  --color-emerald-600: #17654c;
+  /* Dark surfaces — pure neutral, never blue-tinted */
+  --color-obsidian: #0a0a0a;
+  --color-obsidian-2: #18181b;
+  --color-obsidian-3: #27272a;
 
-  /* Surface */
-  --color-ivory: #faf9f5;
-  --color-surface: #ffffff;
-  --color-border-soft: #e7e5df;
+  /* ── Text (all AA+ on canvas) ───────────────────────────────────────── */
+  --color-ink: #0a0a0a;    /* 20.4:1 */
+  --color-ink-2: #3f3f46;  /* 10.4:1 */
+  --color-ink-3: #71717a;  /*  4.8:1 */
 
-  /* Text */
-  --color-ink: #1c2130;
-  --color-ink-muted: #5c6478;
+  /* ── Hairlines ──────────────────────────────────────────────────────── */
+  --color-line: #e4e4e7;
+  --color-line-2: #d4d4d8;
 
-  /* Semantic */
-  --color-success: #1f7a5c;
-  --color-warning: #b3781f;
-  --color-danger: #b3402e;
-  --color-info: #2b6cb3;
+  /* ── The one accent ─────────────────────────────────────────────────── */
+  --color-accent: #4f46e5;      /* 6.3:1 on white, white text 6.3:1 on it */
+  --color-accent-2: #4338ca;
+  --color-accent-3: #3730a3;
+  --color-accent-tint: #eef2ff;
 
-  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  /* ── Semantic status (used only for meaning, never decoration) ──────── */
+  --color-positive: #15803d;      /* 5.0:1 */
+  --color-positive-tint: #f0fdf4;
+  --color-caution: #b45309;       /* 5.0:1 */
+  --color-caution-tint: #fffbeb;
+  --color-critical: #dc2626;      /* 4.8:1 */
+  --color-critical-tint: #fef2f2;
+  --color-informative: #0369a1;   /* 5.7:1 */
+  --color-informative-tint: #f0f9ff;
+
+  /* ── Typeface stack ─────────────────────────────────────────────────── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* ── Radius — deliberately sharp ────────────────────────────────────── */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
+
+  /* ── Elevation — hairline first, shadow only where depth is real ────── */
+  --shadow-xs: 0 1px 2px rgba(10, 10, 10, 0.04);
+  --shadow-sm: 0 1px 3px rgba(10, 10, 10, 0.06), 0 1px 2px rgba(10, 10, 10, 0.04);
+  --shadow-md: 0 4px 12px -2px rgba(10, 10, 10, 0.08);
+  --shadow-lg: 0 16px 40px -12px rgba(10, 10, 10, 0.18);
+  --shadow-xl: 0 32px 64px -16px rgba(10, 10, 10, 0.24);
+
+  /* ── Motion — 150/200/300ms only ────────────────────────────────────── */
+  --ease-swiss: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ═══════════════════════════ BASE ═══════════════════════════════════════ */
+* {
+  border-color: var(--color-line);
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-ivory);
-  color: var(--color-ink);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
+}
+
+/* One focus treatment for the whole product: a 2px accent outline, offset so
+   it never collides with the element's own hairline. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -58,277 +128,489 @@ body {
   }
 }
 
-::selection {
-  background-color: var(--color-gold-400);
-  color: var(--color-navy-950);
+/* ═══════════════════════════ MOTION ═════════════════════════════════════ */
+@keyframes swiss-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes swiss-reveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes swiss-pop {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes swiss-slide-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes swiss-sweep {
+  from { background-position: -160% 0; }
+  to   { background-position: 260% 0; }
+}
+@keyframes swiss-spin {
+  to { transform: rotate(360deg); }
 }
 
-/* Custom component classes live in @layer components so that Tailwind
-   utility classes (@layer utilities) can always override them — e.g.
-   `input-field pl-10` or `card bg-emerald-500/5` — matching Tailwind's
-   documented cascade-layer precedence instead of losing to unlayered CSS. */
+@layer utilities {
+  .motion-rise    { animation: swiss-rise 300ms var(--ease-swiss) both; }
+  .motion-reveal  { animation: swiss-reveal 200ms linear both; }
+  .motion-pop     { animation: swiss-pop 200ms var(--ease-swiss) both; }
+  .motion-drawer  { animation: swiss-slide-left 250ms var(--ease-swiss) both; }
+  .motion-spin    { animation: swiss-spin 800ms linear infinite; }
+
+  .seq-1 { animation-delay: 40ms; }
+  .seq-2 { animation-delay: 80ms; }
+  .seq-3 { animation-delay: 120ms; }
+  .seq-4 { animation-delay: 160ms; }
+  .seq-5 { animation-delay: 200ms; }
+  .seq-6 { animation-delay: 240ms; }
+  .seq-7 { animation-delay: 280ms; }
+  .seq-8 { animation-delay: 320ms; }
+
+  /* Tabular figures for every number the user compares */
+  .figures {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}
+
+/* ═══════════════════════ COMPONENT PRIMITIVES ═══════════════════════════
+   Kept in @layer components so any Tailwind utility (@layer utilities) can
+   override them at call sites — e.g. `field pl-11`, `panel bg-sunken`. */
 @layer components {
 
-.container-page {
+/* ── Page shell: 12-column Swiss measure ────────────────────────────────── */
+.shell {
+  width: 100%;
   max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1.25rem;
-  padding-right: 1.25rem;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (min-width: 768px) {
+  .shell { padding-inline: 32px; }
+}
+@media (min-width: 1280px) {
+  .shell { padding-inline: 40px; }
 }
 
-/* ---------- Typography helpers ---------- */
-.text-display {
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-.text-h2 {
+/* ── Typography ─────────────────────────────────────────────────────────── */
+.t-display {
+  font-family: var(--font-display);
   font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+.t-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+/* Mono micro-label — the Swiss signature. Uppercase, wide tracking, tiny. */
+.t-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  line-height: 1;
+}
+.t-kicker-accent { color: var(--color-accent); }
+
+/* Numeric index marker: 01 / 02 / 03 */
+.t-index {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Rules: the primary structural device of this system ────────────────── */
+.rule {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  margin: 0;
+}
+.rule-strong {
+  border: 0;
+  border-top: 1px solid var(--color-ink);
+  margin: 0;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.2;
-}
-.eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-gold-600);
-}
-
-/* ---------- Buttons ---------- */
-.btn-primary, .btn-accent, .btn-secondary, .btn-ghost, .btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  border-radius: 0.65rem;
-  padding: 0.7rem 1.4rem;
-  min-height: 44px;
-  border: 1px solid transparent;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
   cursor: pointer;
+  white-space: nowrap;
   touch-action: manipulation;
+  transition:
+    background-color 150ms var(--ease-swiss),
+    border-color 150ms var(--ease-swiss),
+    color 150ms var(--ease-swiss),
+    opacity 150ms var(--ease-swiss);
 }
-.btn-primary:focus-visible, .btn-accent:focus-visible, .btn-secondary:focus-visible, .btn-ghost:focus-visible, .btn-danger:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.45);
-}
-.btn-primary:active, .btn-accent:active, .btn-secondary:active, .btn-ghost:active, .btn-danger:active {
-  transform: translateY(1px);
-}
-.btn-primary:disabled, .btn-accent:disabled, .btn-secondary:disabled, .btn-ghost:disabled, .btn-danger:disabled {
-  opacity: 0.55;
+.btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
 }
 
-.btn-primary {
-  background-color: var(--color-navy-900);
-  color: white;
+.btn-solid {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
 }
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-navy-800);
-}
+.btn-solid:hover:not(:disabled) { background-color: var(--color-obsidian-3); }
 
 .btn-accent {
-  background-color: var(--color-gold-500);
-  color: var(--color-navy-950);
+  background-color: var(--color-accent);
+  color: #ffffff;
 }
-.btn-accent:hover:not(:disabled) {
-  background-color: var(--color-gold-600);
-}
+.btn-accent:hover:not(:disabled) { background-color: var(--color-accent-2); }
 
-.btn-secondary {
-  background-color: var(--color-surface);
+.btn-outline {
+  background-color: var(--color-panel);
   color: var(--color-ink);
-  border: 1px solid var(--color-border-soft);
+  border-color: var(--color-line-2);
 }
-.btn-secondary:hover:not(:disabled) {
-  background-color: #f3f2ec;
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--color-veil);
+  border-color: var(--color-ink);
 }
 
-.btn-ghost {
+.btn-quiet {
   background-color: transparent;
-  color: var(--color-ink-muted);
+  color: var(--color-ink-2);
 }
-.btn-ghost:hover:not(:disabled) {
-  background-color: rgba(20, 34, 68, 0.06);
+.btn-quiet:hover:not(:disabled) {
+  background-color: var(--color-veil);
   color: var(--color-ink);
 }
 
-.btn-danger {
-  background-color: var(--color-surface);
-  color: var(--color-danger);
-  border: 1px solid #e3c9c3;
+.btn-critical {
+  background-color: var(--color-panel);
+  color: var(--color-critical);
+  border-color: var(--color-line-2);
 }
-.btn-danger:hover:not(:disabled) {
-  background-color: #fbf1ef;
+.btn-critical:hover:not(:disabled) {
+  background-color: var(--color-critical-tint);
+  border-color: var(--color-critical);
 }
 
-.btn-icon {
+.btn-lg {
+  min-height: 52px;
+  padding: 14px 28px;
+  font-size: 15px;
+}
+.btn-sm {
+  min-height: 44px; /* touch target preserved; visual weight reduced by padding */
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+/* Square icon-only control — 44×44 touch target, no exceptions. */
+.icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 0.6rem;
-  color: var(--color-ink-muted);
-  transition: background-color 150ms ease, color 150ms ease;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--color-ink-3);
   cursor: pointer;
+  transition: background-color 150ms var(--ease-swiss), color 150ms var(--ease-swiss);
 }
-.btn-icon:hover {
-  background-color: rgba(20, 34, 68, 0.06);
+.icon-btn:hover {
+  background-color: var(--color-veil);
   color: var(--color-ink);
 }
-.btn-icon:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.45);
+.icon-btn-critical:hover {
+  background-color: var(--color-critical-tint);
+  color: var(--color-critical);
+}
+.icon-btn-invert {
+  color: rgba(255, 255, 255, 0.72);
+}
+.icon-btn-invert:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
 }
 
-/* ---------- Surfaces ---------- */
-.card {
-  background-color: var(--color-surface);
-  border-radius: 1rem;
-  border: 1px solid var(--color-border-soft);
-  box-shadow: 0 1px 2px rgba(11, 23, 48, 0.04);
+/* ── Surfaces ───────────────────────────────────────────────────────────── */
+.panel {
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+.panel-lift {
+  transition:
+    border-color 200ms var(--ease-swiss),
+    box-shadow 200ms var(--ease-swiss);
+}
+.panel-lift:hover {
+  border-color: var(--color-ink);
+  box-shadow: var(--shadow-md);
 }
 
-.card-hover {
-  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
-}
-.card-hover:hover {
-  box-shadow: 0 12px 28px -12px rgba(11, 23, 48, 0.18);
-  border-color: #d8d5cb;
-  transform: translateY(-2px);
+/* Full-bleed dark band — used for hero and footer only */
+.band-dark {
+  background-color: var(--color-obsidian);
+  color: #ffffff;
 }
 
-/* ---------- Forms ---------- */
-.form-label {
+/* ── Forms ──────────────────────────────────────────────────────────────── */
+.field-label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-ink);
-  margin-bottom: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+  margin-bottom: 8px;
 }
-.form-label .required {
-  color: var(--color-danger);
-  margin-left: 0.15rem;
+.req {
+  color: var(--color-critical);
+  margin-left: 2px;
 }
-.form-help {
-  font-size: 0.8rem;
-  color: var(--color-ink-muted);
-  margin-top: 0.35rem;
+.optional {
+  color: var(--color-ink-3);
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
 }
-.form-error {
-  font-size: 0.8rem;
-  color: var(--color-danger);
-  margin-top: 0.35rem;
+.field-hint {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  margin-top: 8px;
+}
+.field-error {
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-critical);
+  margin-top: 8px;
 }
 
-.input-field {
+.field {
+  display: block;
   width: 100%;
   min-height: 44px;
-  border: 1px solid var(--color-border-soft);
-  background-color: var(--color-surface);
-  border-radius: 0.6rem;
-  padding: 0.65rem 0.9rem;
-  font-size: 0.95rem;
+  padding: 10px 14px;
+  border: 1px solid var(--color-line-2);
+  border-radius: var(--radius-md);
+  background-color: var(--color-panel);
+  font-family: var(--font-sans);
+  font-size: 15px;
   color: var(--color-ink);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color 150ms var(--ease-swiss), box-shadow 150ms var(--ease-swiss);
 }
-.input-field::placeholder {
-  color: #a3a091;
-}
-.input-field:focus {
+.field::placeholder { color: var(--color-ink-3); }
+.field:hover:not(:disabled):not(:focus) { border-color: var(--color-ink-3); }
+.field:focus {
   outline: none;
-  border-color: var(--color-gold-500);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.16);
 }
-.input-field:disabled {
-  background-color: #f3f2ec;
-  color: var(--color-ink-muted);
+.field:disabled {
+  background-color: var(--color-veil);
+  color: var(--color-ink-3);
   cursor: not-allowed;
 }
-.input-field.input-error {
-  border-color: var(--color-danger);
+.field-invalid { border-color: var(--color-critical); }
+.field-invalid:focus {
+  border-color: var(--color-critical);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16);
 }
-.input-field.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(179, 64, 46, 0.15);
+textarea.field {
+  min-height: 88px;
+  line-height: 1.55;
+  resize: vertical;
 }
 
-/* ---------- Badges ---------- */
-.badge {
+/* Native select, restyled to match .field exactly */
+.pick {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+/* Checkbox */
+.tick {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-line-2);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-panel);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 150ms var(--ease-swiss), border-color 150ms var(--ease-swiss);
+}
+.tick:hover:not(:disabled) { border-color: var(--color-ink); }
+.tick:checked {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.tick:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.tick:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Tags (status / meta) — square, mono, never pill-shaped ─────────────── */
+.tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
   white-space: nowrap;
-  line-height: 1.4;
 }
-.badge-blue { background-color: #e5edfa; color: #1d4d8f; }
-.badge-amber { background-color: #faf0dc; color: #8a5d0f; }
-.badge-violet { background-color: #efe7fb; color: #6432a8; }
-.badge-green { background-color: #e2f3ec; color: #166a4d; }
-.badge-red { background-color: #fbe9e6; color: #9c3624; }
-.badge-orange { background-color: #fdedd9; color: #a15b12; }
-.badge-neutral { background-color: #eeede6; color: #55554d; }
-.badge-gold { background-color: #f8efd6; color: var(--color-gold-600); }
+.tag-neutral   { background-color: var(--color-veil); color: var(--color-ink-2); border-color: var(--color-line); }
+.tag-accent    { background-color: var(--color-accent-tint); color: var(--color-accent-3); border-color: #c7d2fe; }
+.tag-positive  { background-color: var(--color-positive-tint); color: #14532d; border-color: #bbf7d0; }
+.tag-caution   { background-color: var(--color-caution-tint); color: #92400e; border-color: #fde68a; }
+.tag-critical  { background-color: var(--color-critical-tint); color: #991b1b; border-color: #fecaca; }
+.tag-info      { background-color: var(--color-informative-tint); color: #075985; border-color: #bae6fd; }
+.tag-solid     { background-color: var(--color-ink); color: var(--color-canvas); border-color: var(--color-ink); }
 
-/* ---------- Tables ---------- */
-.table-wrap {
-  overflow-x: auto;
-  border-radius: 1rem;
-  border: 1px solid var(--color-border-soft);
-  background-color: var(--color-surface);
+/* Interactive tag (used as a toggle) needs its own affordance */
+button.tag {
+  cursor: pointer;
+  min-height: 24px;
+  transition: opacity 150ms var(--ease-swiss);
 }
-table.data-table {
+button.tag:hover { opacity: 0.72; }
+
+/* ── Data tables ────────────────────────────────────────────────────────── */
+.tbl-frame {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-panel);
+}
+table.tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 14px;
 }
-table.data-table thead th {
+table.tbl thead th {
+  padding: 12px 16px;
   text-align: left;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-ink-muted);
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--color-border-soft);
   white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  border-bottom: 1px solid var(--color-ink);
+  background-color: var(--color-panel);
 }
-table.data-table tbody td {
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid #f0efe9;
+table.tbl tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-line);
   vertical-align: middle;
+  color: var(--color-ink-2);
 }
-table.data-table tbody tr:last-child td {
-  border-bottom: none;
+table.tbl tbody tr:last-child td { border-bottom: 0; }
+table.tbl tbody tr { transition: background-color 150ms var(--ease-swiss); }
+table.tbl tbody tr:hover { background-color: var(--color-sunken); }
+
+/* ── Skeleton shimmer ───────────────────────────────────────────────────── */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-veil);
 }
-table.data-table tbody tr {
-  transition: background-color 120ms ease;
-}
-table.data-table tbody tr:hover {
-  background-color: #faf9f4;
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: swiss-sweep 1.4s ease-in-out infinite;
 }
 
-} /* end @layer components */
-
-/* ---------- Scrollbar (subtle) ---------- */
-::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+/* ── Text link ──────────────────────────────────────────────────────────── */
+.link {
+  color: var(--color-ink);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color 150ms var(--ease-swiss);
 }
+.link:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+} /* ── end @layer components ── */
+
+/* ═══════════════════════════ SCROLLBAR ══════════════════════════════════ */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-canvas); }
 ::-webkit-scrollbar-thumb {
-  background-color: #d8d5cb;
+  background-color: var(--color-line-2);
+  border: 3px solid var(--color-canvas);
   border-radius: 999px;
 }
+::-webkit-scrollbar-thumb:hover { background-color: var(--color-ink-3); }
