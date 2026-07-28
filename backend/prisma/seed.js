@@ -117,20 +117,20 @@ async function main() {
       ],
     },
     {
-      name: 'Marketing strategiya shablonlari to\'plami',
-      slug: 'marketing-shablonlar',
-      type: 'TEMPLATE',
+      name: 'Marketing strategiyasi bo\'yicha elektron qo\'llanma',
+      slug: 'marketing-qollanma',
+      type: 'PDF_GUIDE',
       categorySlug: 'marketing',
-      shortDescription: '30+ tayyor marketing shablonlari va rejalar.',
-      fullDescription: 'Kontent-reja, reklama byudjeti va SMM strategiyasi uchun tayyor shablonlar to\'plami.',
+      shortDescription: 'Kontent-reja va SMM strategiyasi bo\'yicha to\'liq PDF qo\'llanma.',
+      fullDescription: 'Kontent-reja, reklama byudjeti va SMM strategiyasi bo\'yicha bosqichma-bosqich PDF qo\'llanma.',
       price: 150000,
       discountPrice: 99000,
       isFeatured: true,
       tariffs: [
-        { name: 'Standart', price: 99000, features: ['30+ shablon', 'Google Sheets formatida'], sortOrder: 1 },
+        { name: 'Standart', price: 99000, features: ['To\'liq PDF qo\'llanma', 'Google Sheets shablonlari'], sortOrder: 1 },
       ],
       demoMaterials: [
-        { type: 'PDF', title: 'Namuna shablon', url: 'https://example.com/shablon-demo.pdf', sortOrder: 1 },
+        { type: 'PDF', title: 'Namuna sahifalar', url: 'https://example.com/qollanma-demo.pdf', sortOrder: 1 },
       ],
     },
   ];

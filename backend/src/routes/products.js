@@ -47,6 +47,20 @@ router.get(
 );
 
 router.get(
+  '/reviews/highlights',
+  asyncHandler(async (req, res) => {
+    const limit = Math.min(Number(req.query.limit) || 6, 12);
+    const reviews = await prisma.review.findMany({
+      where: { isApproved: true, rating: { gte: 4 }, textContent: { not: null } },
+      include: { product: { select: { name: true, slug: true } } },
+      orderBy: [{ rating: 'desc' }, { createdAt: 'desc' }],
+      take: limit,
+    });
+    res.json(reviews);
+  })
+);
+
+router.get(
   '/:slug',
   asyncHandler(async (req, res) => {
     const product = await prisma.product.findUnique({

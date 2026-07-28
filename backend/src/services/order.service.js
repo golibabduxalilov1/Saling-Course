@@ -17,8 +17,6 @@ async function createOrder(payload) {
     phone,
     telegramUsername,
     email,
-    region,
-    address,
     comment,
     promoCode: promoCodeInput,
     utmSource,
@@ -77,8 +75,7 @@ async function createOrder(payload) {
     promoCode = resolved.promoCode;
   }
 
-  const deliveryPrice = 0;
-  const totalAmount = Math.max(0, subtotal - discountAmount + deliveryPrice);
+  const totalAmount = Math.max(0, subtotal - discountAmount);
 
   let orderNumber = generateOrderNumber();
   for (let attempts = 0; attempts < 5; attempts += 1) {
@@ -96,13 +93,10 @@ async function createOrder(payload) {
         phone,
         telegramUsername,
         email,
-        region,
-        address,
         comment,
         subtotal,
         discountAmount,
         promoCodeId: promoCode ? promoCode.id : null,
-        deliveryPrice,
         totalAmount,
         remainingAmount: totalAmount,
         paymentStatus: 'PENDING',
