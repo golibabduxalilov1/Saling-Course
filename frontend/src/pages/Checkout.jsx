@@ -37,7 +37,6 @@ export default function Checkout() {
     customerLastName: '',
     phone: '',
     telegramUsername: '',
-    email: '',
     comment: '',
   });
   const [promoInput, setPromoInput] = useState('');
@@ -194,21 +193,6 @@ export default function Checkout() {
                   className="field"
                   placeholder="@username"
                   value={form.telegramUsername}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label className="field-label" htmlFor="co-email">
-                  Email <span className="optional">(ixtiyoriy)</span>
-                </label>
-                <input
-                  id="co-email"
-                  name="email"
-                  type="email"
-                  className="field"
-                  autoComplete="email"
-                  placeholder="email@misol.uz"
-                  value={form.email}
                   onChange={handleChange}
                 />
               </div>

@@ -1,26 +1,33 @@
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const { normalizePhone } = require('../src/utils/phone');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@sotuv.uz';
+  // Login endpointi kiritilgan raqamni normallashtiradi, shuning uchun seed ham
+  // aynan shu formatda yozishi kerak — aks holda admin tizimga kira olmaydi.
+  const rawAdminPhone = process.env.SEED_ADMIN_PHONE || '+998901234567';
+  const adminPhone = normalizePhone(rawAdminPhone);
+  if (!adminPhone) {
+    throw new Error(`SEED_ADMIN_PHONE noto'g'ri formatda: ${rawAdminPhone}`);
+  }
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'admin12345';
   const adminName = process.env.SEED_ADMIN_NAME || 'Administrator';
 
   const passwordHash = await bcrypt.hash(adminPassword, 10);
   await prisma.adminUser.upsert({
-    where: { email: adminEmail },
+    where: { phone: adminPhone },
     update: {},
     create: {
       name: adminName,
-      email: adminEmail,
+      phone: adminPhone,
       passwordHash,
       role: 'SUPER_ADMIN',
     },
   });
-  console.log(`Admin tayyor: ${adminEmail} / ${adminPassword}`);
+  console.log(`Admin tayyor: ${adminPhone} / ${adminPassword}`);
 
   const categoriesData = [
     { name: 'Marketing', slug: 'marketing' },

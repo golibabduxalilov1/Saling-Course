@@ -24,6 +24,7 @@ import Orders from './pages/admin/Orders';
 import OrderDetail from './pages/admin/OrderDetail';
 import Customers from './pages/admin/Customers';
 import PromoCodes from './pages/admin/PromoCodes';
+import AdLinks from './pages/admin/AdLinks';
 import Reviews from './pages/admin/Reviews';
 import Leads from './pages/admin/Leads';
 import AbandonedCheckouts from './pages/admin/AbandonedCheckouts';
@@ -66,6 +67,7 @@ function App() {
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="customers" element={<Customers />} />
               <Route path="promo-codes" element={<PromoCodes />} />
+              <Route path="ad-links" element={<AdLinks />} />
               <Route path="reviews" element={<Reviews />} />
               <Route path="leads" element={<Leads />} />
               <Route path="abandoned-checkouts" element={<AbandonedCheckouts />} />

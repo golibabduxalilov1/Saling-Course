@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
+const { ensureUploadDirs } = require('./utils/mediaUpload');
 
 const categoryRoutes = require('./routes/categories');
 const productRoutes = require('./routes/products');
@@ -19,6 +20,20 @@ app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+// Admin panelda yuklangan mahsulot media fayllari. Papka `/api` ostida
+// tarqatiladi — shunda Vite dev-proxy ham, production ham bir xil ishlaydi.
+app.use(
+  '/api/uploads',
+  express.static(ensureUploadDirs(), {
+    index: false,
+    dotfiles: 'ignore',
+    maxAge: '30d',
+    setHeaders(res) {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    },
+  })
+);
 
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);

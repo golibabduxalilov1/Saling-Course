@@ -4,6 +4,7 @@ import {
   BadgePercent,
   ChartNoAxesCombined,
   LayoutDashboard,
+  Link2,
   LogOut,
   Menu,
   MessageSquare,
@@ -31,6 +32,7 @@ const NAV_GROUPS = [
       { to: '/admin/orders', label: 'Buyurtmalar', icon: ShoppingBag },
       { to: '/admin/abandoned-checkouts', label: 'Tugallanmagan', icon: ShoppingCart },
       { to: '/admin/promo-codes', label: 'Promo-kodlar', icon: BadgePercent },
+      { to: '/admin/ad-links', label: 'Reklama havolalari', icon: Link2 },
     ],
   },
   {
@@ -109,8 +111,8 @@ function Sidebar({ admin, onNavigate, onLogout }) {
       </nav>
 
       <div className="px-3 py-4 border-t border-line shrink-0">
-        <p className="px-3 mb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3 truncate">
-          {admin?.email}
+        <p className="px-3 mb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3 truncate figures">
+          {admin?.phone}
         </p>
         <button
           type="button"

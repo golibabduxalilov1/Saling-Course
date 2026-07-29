@@ -4,7 +4,7 @@ import { api } from '../api/client';
 import { getTrackingPayload } from '../utils/utm';
 
 export default function LeadCaptureForm({ productId, title = 'Bepul material olish' }) {
-  const [form, setForm] = useState({ name: '', phone: '', telegramUsername: '', email: '' });
+  const [form, setForm] = useState({ name: '', phone: '', telegramUsername: '' });
   const [status, setStatus] = useState('idle');
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,7 +17,7 @@ export default function LeadCaptureForm({ productId, title = 'Bepul material oli
       const tracking = getTrackingPayload();
       await api.post('/leads', { ...form, productId, ...tracking });
       setStatus('done');
-      setForm({ name: '', phone: '', telegramUsername: '', email: '' });
+      setForm({ name: '', phone: '', telegramUsername: '' });
     } catch {
       setStatus('error');
     }

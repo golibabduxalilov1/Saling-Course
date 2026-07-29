@@ -12,6 +12,8 @@ const leadRoutes = require('./leads');
 const abandonedCheckoutRoutes = require('./abandonedCheckouts');
 const reviewRoutes = require('./reviews');
 const analyticsRoutes = require('./analytics');
+const adLinkRoutes = require('./adLinks');
+const uploadRoutes = require('./uploads');
 
 const router = express.Router();
 
@@ -27,5 +29,7 @@ router.use('/leads', requireAdminAuth, leadRoutes);
 router.use('/abandoned-checkouts', requireAdminAuth, abandonedCheckoutRoutes);
 router.use('/reviews', requireAdminAuth, reviewRoutes);
 router.use('/analytics', requireAdminAuth, analyticsRoutes);
+router.use('/ad-links', requireAdminAuth, adLinkRoutes);
+router.use('/uploads', requireAdminAuth, uploadRoutes);
 
 module.exports = router;

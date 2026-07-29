@@ -2,25 +2,26 @@ const express = require('express');
 const prisma = require('../config/prisma');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { ApiError } = require('../middleware/errorHandler');
+const { normalizePhoneOrThrow } = require('../utils/phone');
 
 const router = express.Router();
 
 router.post(
   '/',
   asyncHandler(async (req, res) => {
-    const { name, phone, telegramUsername, email, productId, source, utmSource, utmMedium, utmCampaign, utmContent } =
+    const { name, phone, telegramUsername, productId, source, utmSource, utmMedium, utmCampaign, utmContent } =
       req.body;
 
-    if (!name || !phone) {
-      throw new ApiError(400, 'Ism va telefon raqami majburiy');
+    if (!name) {
+      throw new ApiError(400, 'Ism majburiy');
     }
+    const normalizedPhone = normalizePhoneOrThrow(phone);
 
     const lead = await prisma.lead.create({
       data: {
         name,
-        phone,
+        phone: normalizedPhone,
         telegramUsername,
-        email,
         productId: productId || null,
         source,
         utmSource,

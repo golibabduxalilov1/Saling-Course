@@ -1,2 +1,5 @@
 node_modules/
 .env
+
+# Admin panelda yuklangan media fayllar (rasm/video) — repoga tushmaydi
+uploads/

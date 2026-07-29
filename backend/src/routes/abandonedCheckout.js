@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../config/prisma');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { ApiError } = require('../middleware/errorHandler');
+const { normalizePhone } = require('../utils/phone');
 
 const router = express.Router();
 
@@ -17,10 +18,13 @@ router.post(
       throw new ApiError(400, 'Telefon raqami majburiy');
     }
 
+    // Bu yozuv mijoz formani to'ldirib bo'lmasidan yuboriladi, shuning uchun
+    // to'liq bo'lmagan raqamni rad etmaymiz — normallashtira olsak, buyurtmalar
+    // bilan bir xil formatda saqlaymiz, aks holda kiritilgan holicha qoldiramiz.
     const record = await prisma.abandonedCheckout.create({
       data: {
         name,
-        phone,
+        phone: normalizePhone(phone) || String(phone).trim(),
         productId: productId || null,
         tariffId: tariffId || null,
         amount: amount ? Number(amount) : null,

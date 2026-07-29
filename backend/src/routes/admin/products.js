@@ -3,6 +3,13 @@ const prisma = require('../../config/prisma');
 const { asyncHandler } = require('../../utils/asyncHandler');
 const { ApiError } = require('../../middleware/errorHandler');
 const { slugify } = require('../../utils/slugify');
+const { assertMediaValue } = require('../../utils/mediaUpload');
+
+/** Rasm/video maydonlari: bo'sh, http(s) havola yoki yuklangan fayl bo'lishi mumkin. */
+function assertMediaFields(fields) {
+  assertMediaValue('image', fields.mainImage);
+  assertMediaValue('video', fields.videoUrl);
+}
 
 const router = express.Router();
 
@@ -39,6 +46,7 @@ router.post(
     const { tariffs, demoMaterials, ...fields } = req.body;
     if (!fields.name) throw new ApiError(400, 'Mahsulot nomi majburiy');
     if (!fields.price) throw new ApiError(400, 'Narx majburiy');
+    assertMediaFields(fields);
 
     const slug = fields.slug ? slugify(fields.slug) : slugify(fields.name);
 
@@ -62,6 +70,7 @@ router.put(
   asyncHandler(async (req, res) => {
     const { tariffs, demoMaterials, ...fields } = req.body;
     if (fields.slug) fields.slug = slugify(fields.slug);
+    assertMediaFields(fields);
 
     const product = await prisma.product.update({
       where: { id: req.params.id },

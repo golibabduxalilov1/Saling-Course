@@ -1,8 +1,8 @@
 const prisma = require('../config/prisma');
 const { ApiError } = require('../middleware/errorHandler');
 const { generateOrderNumber } = require('../utils/orderNumber');
-const { resolvePromoCode } = require('./promo.service');
-const { notifyAdminNewOrder } = require('./mailer.service');
+const { resolvePromoCode, consumePromoCode } = require('./promo.service');
+const { normalizePhoneOrThrow } = require('../utils/phone');
 
 /**
  * Creates an order from raw cart items. All prices are re-derived from the
@@ -16,7 +16,6 @@ async function createOrder(payload) {
     customerLastName,
     phone,
     telegramUsername,
-    email,
     comment,
     promoCode: promoCodeInput,
     utmSource,
@@ -31,9 +30,13 @@ async function createOrder(payload) {
   if (!Array.isArray(items) || items.length === 0) {
     throw new ApiError(400, 'Savat bo\'sh bo\'lishi mumkin emas');
   }
-  if (!customerName || !phone) {
-    throw new ApiError(400, 'Ism va telefon raqami majburiy');
+  if (!customerName) {
+    throw new ApiError(400, 'Ism majburiy');
   }
+  // Telefon raqami mijozning asosiy aloqa ma'lumoti — bazaga doim bitta formatda
+  // tushishi kerak, aks holda mijozlar ro'yxati bir odamni bir nechta yozuvga bo'lib
+  // yuboradi.
+  const normalizedPhone = normalizePhoneOrThrow(phone);
 
   const productIds = [...new Set(items.map((i) => i.productId))];
   const products = await prisma.product.findMany({
@@ -67,16 +70,6 @@ async function createOrder(payload) {
 
   const subtotal = resolvedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  let discountAmount = 0;
-  let promoCode = null;
-  if (promoCodeInput) {
-    const resolved = await resolvePromoCode(promoCodeInput, productIds, subtotal);
-    discountAmount = resolved.discountAmount;
-    promoCode = resolved.promoCode;
-  }
-
-  const totalAmount = Math.max(0, subtotal - discountAmount);
-
   let orderNumber = generateOrderNumber();
   for (let attempts = 0; attempts < 5; attempts += 1) {
     const clash = await prisma.order.findUnique({ where: { orderNumber } });
@@ -84,15 +77,29 @@ async function createOrder(payload) {
     orderNumber = generateOrderNumber();
   }
 
+  // Promo-kodni tekshirish, "band qilish" va buyurtmani yozish bitta
+  // transaction ichida bajariladi. Shu sababli quyidagi bosqichlarning
+  // birortasi xato bersa `usedCount` ham avtomatik ravishda qaytariladi.
   const order = await prisma.$transaction(async (tx) => {
+    let discountAmount = 0;
+    let promoCode = null;
+    if (promoCodeInput) {
+      const resolved = await resolvePromoCode(promoCodeInput, productIds, subtotal, tx);
+      discountAmount = resolved.discountAmount;
+      promoCode = resolved.promoCode;
+      // Limitning yagona ishonchli tekshiruvi — shartli atomar UPDATE.
+      await consumePromoCode(tx, promoCode.id);
+    }
+
+    const totalAmount = Math.max(0, subtotal - discountAmount);
+
     const created = await tx.order.create({
       data: {
         orderNumber,
         customerName,
         customerLastName,
-        phone,
+        phone: normalizedPhone,
         telegramUsername,
-        email,
         comment,
         subtotal,
         discountAmount,
@@ -115,13 +122,6 @@ async function createOrder(payload) {
       include: { items: { include: { product: true, tariff: true } } },
     });
 
-    if (promoCode) {
-      await tx.promoCode.update({
-        where: { id: promoCode.id },
-        data: { usedCount: { increment: 1 } },
-      });
-    }
-
     await tx.analyticsEvent.create({
       data: {
         type: 'PURCHASE',
@@ -135,8 +135,6 @@ async function createOrder(payload) {
 
     return created;
   });
-
-  notifyAdminNewOrder(order).catch(() => {});
 
   return order;
 }

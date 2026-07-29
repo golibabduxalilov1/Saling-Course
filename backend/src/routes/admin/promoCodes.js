@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../../config/prisma');
 const { asyncHandler } = require('../../utils/asyncHandler');
 const { ApiError } = require('../../middleware/errorHandler');
+const { parseUsageLimit } = require('../../services/promo.service');
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.post(
         discountType,
         value,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
-        usageLimit: usageLimit ?? null,
+        usageLimit: parseUsageLimit(usageLimit) ?? null,
         minOrderAmount: minOrderAmount ?? null,
         productIds: productIds || [],
         isActive: isActive ?? true,
@@ -48,7 +49,8 @@ router.put(
         discountType,
         value,
         expiresAt: expiresAt ? new Date(expiresAt) : expiresAt === null ? null : undefined,
-        usageLimit,
+        // `undefined` — maydon o'zgartirilmaydi, `null` — limit olib tashlanadi.
+        usageLimit: parseUsageLimit(usageLimit),
         minOrderAmount,
         productIds,
         isActive,

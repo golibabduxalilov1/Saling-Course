@@ -125,7 +125,6 @@ export default function OrderDetail() {
               <span className="figures">{order.phone}</span>
             </Row>
             <Row label="Telegram">{order.telegramUsername}</Row>
-            <Row label="Email">{order.email}</Row>
             <Row label="Manba">
               {order.utmSource || order.source || '—'}
               {order.utmCampaign ? ` / ${order.utmCampaign}` : ''}

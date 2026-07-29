@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft, CircleAlert, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { adminApi } from '../../api/client';
+import MediaField from '../../components/admin/MediaField';
 import { TYPE_LABELS } from '../../components/ProductCard';
 import { useToast } from '../../context/ToastContext';
 
@@ -365,34 +366,27 @@ export default function ProductForm() {
           </div>
         </Section>
 
-        <Section index="03" title="Media" description="Mahsulot rasmi va tanishtiruv videosi.">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <Field id="pf-image" label="Asosiy rasm (URL)">
-              <input
-                id="pf-image"
-                name="mainImage"
-                className="field font-mono text-sm"
-                placeholder="https://"
-                value={form.mainImage}
-                onChange={handleChange}
-              />
-            </Field>
-            <Field id="pf-video" label="Reklama videosi (URL)">
-              <input
-                id="pf-video"
-                name="videoUrl"
-                className="field font-mono text-sm"
-                placeholder="https://"
-                value={form.videoUrl}
-                onChange={handleChange}
-              />
-            </Field>
-          </div>
-          {form.mainImage && (
-            <div className="aspect-[16/9] max-w-xs border border-line rounded-md overflow-hidden bg-veil">
-              <img src={form.mainImage} alt="Rasm koʼrinishi" className="w-full h-full object-cover" />
-            </div>
-          )}
+        <Section
+          index="03"
+          title="Media"
+          description="Mahsulot rasmi va tanishtiruv videosi. Tayyor havola kiriting yoki faylni qurilmangizdan yuklang."
+        >
+          <MediaField
+            kind="image"
+            id="pf-image"
+            label="Mahsulot rasmi"
+            hint="Tashqi havola yoki yuklangan fayl — katalog va mahsulot sahifasida shu rasm koʼrinadi."
+            value={form.mainImage}
+            onChange={(url) => setForm((prev) => ({ ...prev, mainImage: url }))}
+          />
+          <MediaField
+            kind="video"
+            id="pf-video"
+            label="Tanishtiruv videosi"
+            hint="YouTube/Vimeo havolasi yoki qurilmadan yuklangan MP4 fayl."
+            value={form.videoUrl}
+            onChange={(url) => setForm((prev) => ({ ...prev, videoUrl: url }))}
+          />
         </Section>
 
         <Section index="04" title="Holat va koʼrinish" description="Katalogda qanday koʼrinishini belgilang.">

@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ phone: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +16,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      await login(form.email, form.password);
+      await login(form.phone, form.password);
       navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.error || 'Kirishda xatolik yuz berdi');
@@ -73,17 +73,17 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="mt-10 pt-10 border-t border-line flex flex-col gap-5" noValidate>
             <div>
-              <label htmlFor="login-email" className="field-label">
-                Email<span className="req">*</span>
+              <label htmlFor="login-phone" className="field-label">
+                Telefon raqami<span className="req">*</span>
               </label>
               <input
-                id="login-email"
-                type="email"
-                className={`field ${error ? 'field-invalid' : ''}`}
-                autoComplete="username"
-                placeholder="siz@kompaniya.uz"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                id="login-phone"
+                type="tel"
+                className={`field figures ${error ? 'field-invalid' : ''}`}
+                autoComplete="tel"
+                placeholder="+998 90 123 45 67"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 aria-invalid={!!error}
                 required
               />

@@ -22,7 +22,6 @@ router.get(
         byPhone.set(key, {
           phone: order.phone,
           name: order.customerName,
-          email: order.email,
           telegramUsername: order.telegramUsername,
           firstSource: order.utmSource || order.source || null,
           lastSource: order.utmSource || order.source || null,

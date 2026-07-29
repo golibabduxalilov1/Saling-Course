@@ -78,7 +78,7 @@ enum AnalyticsEventType {
 model AdminUser {
   id           String    @id @default(cuid())
   name         String
-  email        String    @unique
+  phone        String    @unique
   passwordHash String
   role         AdminRole @default(ADMIN)
   createdAt    DateTime  @default(now())
@@ -217,7 +217,6 @@ model Order {
   customerLastName String?
   phone            String
   telegramUsername String?
-  email            String?
   comment          String?
   internalNote     String?
 
@@ -274,7 +273,6 @@ model Lead {
   name              String
   phone             String
   telegramUsername  String?
-  email             String?
   productId         String?
   product           Product? @relation(fields: [productId], references: [id])
 
@@ -314,6 +312,24 @@ model AbandonedCheckout {
 
   @@index([phone])
   @@index([createdAt])
+}
+
+/// Targetologlar uchun tayyorlangan reklama havolalari. Har bir yozuv
+/// generatorda yaratilgan bitta UTM-havolani saqlaydi.
+model AdLink {
+  id             String   @id @default(cuid())
+  campaignName   String
+  platform       String
+  medium         String
+  content        String?
+  destinationUrl String
+  generatedUrl   String
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([platform])
 }
 
 model AnalyticsEvent {

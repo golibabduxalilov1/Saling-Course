@@ -10,6 +10,18 @@ import PageHeader from '../../components/admin/PageHeader';
 
 const empty = { code: '', discountType: 'PERCENT', value: '', expiresAt: '', usageLimit: '', minOrderAmount: '' };
 
+// Foydalanish limiti global cheklov: faqat musbat butun son yoki bo'sh
+// (cheklanmagan) qiymat qabul qilinadi.
+function parseUsageLimit(raw) {
+  const trimmed = String(raw ?? '').trim();
+  if (trimmed === '') return { value: null };
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return { error: "Foydalanish limiti musbat butun son yoki bo'sh bo'lishi kerak" };
+  }
+  return { value: parsed };
+}
+
 export default function PromoCodes() {
   const [promoCodes, setPromoCodes] = useState([]);
   const [form, setForm] = useState(empty);
@@ -36,12 +48,20 @@ export default function PromoCodes() {
     e.preventDefault();
     if (submitting) return;
     setError('');
+
+    const usageLimit = parseUsageLimit(form.usageLimit);
+    if (usageLimit.error) {
+      setError(usageLimit.error);
+      toast.error(usageLimit.error);
+      return;
+    }
+
     setSubmitting(true);
     try {
       await adminApi.post('/promo-codes', {
         ...form,
         value: Number(form.value),
-        usageLimit: form.usageLimit ? Number(form.usageLimit) : null,
+        usageLimit: usageLimit.value,
         minOrderAmount: form.minOrderAmount ? Number(form.minOrderAmount) : null,
         expiresAt: form.expiresAt || null,
       });
@@ -161,7 +181,10 @@ export default function PromoCodes() {
             <input
               id="pc-limit"
               type="number"
+              min="1"
+              step="1"
               className="field figures"
+              placeholder="Cheklanmagan"
               value={form.usageLimit}
               onChange={(e) => setForm({ ...form, usageLimit: e.target.value })}
             />
